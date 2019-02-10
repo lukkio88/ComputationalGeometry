@@ -23,7 +23,7 @@ Position Segment::classify(const Point & p) const
 	
 }
 
-bool Segment::intersect(const Segment & r) const
+bool Segment::does_intersect(const Segment & r) const
 {
 	const Segment & s = *this;
 	const Point & a = s.p;
@@ -40,4 +40,27 @@ bool Segment::intersect(const Segment & r) const
 		return true;
 	else
 		return false;
+}
+
+Point Segment::intersect(const Segment & r) const
+{
+	const Segment & s = *this;
+	const Point & p = s.p -r.p;
+	const Point & v = r.q - r.p;
+	const Point & w = s.p - s.q;
+
+	Float alpha = p * rotate90(v)/(w*rotate90(v)); //is segments intersect then 0.0 <= alpha <= 1.0
+	return s.p - alpha * w;
+}
+
+Float getX(const Segment & s, Float y)
+{
+	Float alpha = (y - s.p.y) / (s.q.y - s.p.y);
+	return s.p.x + alpha * (s.q.x - s.p.x);
+}
+
+Point getPt(const Segment & s, Float y)
+{
+	Float alpha = (y - s.p.y) / (s.q.y - s.p.y);
+	return s.p + alpha * (s.q - s.p);
 }

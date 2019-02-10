@@ -5,6 +5,16 @@ Point Point::operator-() const
 	return Point{ -x,-y };
 }
 
+bool Point::operator==(const Point & p) const
+{
+	return x == p.x && y == p.y;
+}
+
+bool Point::operator!=(const Point & p) const
+{
+	return !(*this == p);
+}
+
 Point Point::operator+(const Point & p) const
 {
 	return Point{ x + p.x, y + p.y };
@@ -51,7 +61,7 @@ Position classify(const Point & p, const Point & q, const Point& r)
 	Int wx = *reinterpret_cast<Int*>(&w.x);
 	Int wy = *reinterpret_cast<Int*>(&w.y);
 
-	if ((vx^wx) & (vy^wy))
+	if (((vx^wx) & (vy^wy)) >> 63)
 		return BACK;
 	Float dist_v = v.distOrigin();
 	Float dist_w = w.distOrigin();
@@ -59,6 +69,11 @@ Position classify(const Point & p, const Point & q, const Point& r)
 		return INSIDE;
 	return FRONT;
 
+}
+
+Point rotate90(const Point & p)
+{
+	return Point{ p.y,-p.x };
 }
 
 double l2dist(const Point & p, const Point & q)

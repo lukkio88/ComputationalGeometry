@@ -1,4 +1,6 @@
 #pragma once
+#ifndef __SEGMENT_H
+#define __SEGMENT_H
 #include <point2D.h>
 
 struct Segment {
@@ -6,6 +8,12 @@ struct Segment {
 	Float length() const;
 	void swap_pts();
 	Position classify(const Point& p) const;
-	bool intersect(const Segment& r) const;
+	bool does_intersect(const Segment& r) const;
+	Point intersect(const Segment& r) const;
 	Point p, q;
 };
+
+Float getX(const Segment& s, Float y);
+Point getPt(const Segment& s, Float y);
+
+#endif
