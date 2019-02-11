@@ -18,9 +18,9 @@ void Segment::swap_pts()
 	q = tmp;
 }
 
-Position Segment::classify(const Point & p) const
+Position Segment::classify(const Point & pt) const
 {
-	
+	return pt.classify(p, q);
 }
 
 bool Segment::does_intersect(const Segment & r) const
@@ -30,37 +30,38 @@ bool Segment::does_intersect(const Segment & r) const
 	const Point & b = s.q;
 	const Point & c = r.p;
 	const Point & d = r.q;
-	
-	Float a2_abc = twiceArea(a, b, c);
-	Float a2_abd = twiceArea(a, b, d);
-	Float a2_cda = twiceArea(c, d, a);
-	Float a2_cdb = twiceArea(c, d, b);
 
-	if (a2_abc <= 0.0 && a2_abd >= 0.0 && a2_cda <= 0.0 && a2_cdb >= 0.0)
-		return true;
-	else
-		return false;
+	return ((a.classify(c, d) == LEFT) && (b.classify(c, d) == RIGHT) && (c.classify(a, b) == LEFT) && (d.classify(a, b) == RIGHT));
 }
 
-Point Segment::intersect(const Segment & r) const
+bool Segment::intersect(const Segment& r, Point& pt) const
 {
+	if (!does_intersect(r))
+		return false;
+
 	const Segment & s = *this;
 	const Point & p = s.p -r.p;
 	const Point & v = r.q - r.p;
 	const Point & w = s.p - s.q;
 
-	Float alpha = p * rotate90(v)/(w*rotate90(v)); //is segments intersect then 0.0 <= alpha <= 1.0
-	return s.p - alpha * w;
+	Float alpha = p * rotate90(v)/(w*rotate90(v)); //formula comes from linear algebra
+	pt = s.p - alpha * w;
+	return true;
 }
 
-Float getX(const Segment & s, Float y)
+bool Segment::getX(Float y, Float& x) const
 {
-	Float alpha = (y - s.p.y) / (s.q.y - s.p.y);
-	return s.p.x + alpha * (s.q.x - s.p.x);
+	Point pt;
+	bool inside = getPt(y, pt);
+	x = pt.x;
+	return inside;
 }
 
-Point getPt(const Segment & s, Float y)
+bool Segment::getPt(Float y, Point& pt) const
 {
-	Float alpha = (y - s.p.y) / (s.q.y - s.p.y);
-	return s.p + alpha * (s.q - s.p);
+	Float alpha = (y - p.y) / (q.y - p.y);
+	pt = p + alpha * (q - p);
+	if (classify(pt) == INSIDE)
+		return true;
+	return false;
 }

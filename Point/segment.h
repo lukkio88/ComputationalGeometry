@@ -3,17 +3,20 @@
 #define __SEGMENT_H
 #include <point2D.h>
 
-struct Segment {
+class Segment {
+public:
 	Segment(const Point& a, const Point& b);
 	Float length() const;
 	void swap_pts();
-	Position classify(const Point& p) const;
+	Position classify(const Point& pt) const;
+	bool intersect(const Segment& r, Point& pt) const;
+	bool getX(Float y, Float& x) const;
+	bool getPt(Float y, Point& pt) const;
+private:
 	bool does_intersect(const Segment& r) const;
-	Point intersect(const Segment& r) const;
-	Point p, q;
+public:
+	Point p; //origin
+	Point q; //destination
 };
-
-Float getX(const Segment& s, Float y);
-Point getPt(const Segment& s, Float y);
 
 #endif
