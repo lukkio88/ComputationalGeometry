@@ -40,35 +40,72 @@ Float Point::distOrigin() const
 	return sqrt((*this)*(*this));
 }
 
+Position Point::classify(const Point & p, const Point & q) const
+{
+	if (left(p, q)) return LEFT;
+	if (right(p, q)) return RIGHT;
+	if (front(p, q)) return FRONT;
+	if (back(p, q)) return BACK;
+	if (between(p, q)) return INSIDE;
+}
+
+bool Point::left(const Point& a, const Point& b) const {
+	const Point & c = *this;
+	return twiceArea(a, b, c) > 0.0;
+}
+
+bool Point::right(const Point& a, const Point& b)  const {
+	const Point & c = *this;
+	return twiceArea(a, b, c) < 0.0;
+}
+
+bool Point::collinear(const Point& a, const Point& b) const {
+	const Point & c = *this;
+	return twiceArea(a, b, c) == 0.0;
+}
+
+bool Point::front(const Point & a, const Point & b) const
+{
+	if (collinear(a, b)) {
+		Point u = *this - a;
+		Point v = b - a;
+		if (v.x != 0.0) //v isn't vertical
+			return abs(u.x) > abs(v.x);
+		else
+			return abs(u.y) > abs(v.y);
+	}
+	return false;
+}
+
+bool Point::back(const Point & a, const Point & b) const
+{
+	if (collinear(a, b)) {
+		Point u = *this - a;
+		Point v = b - a;
+		if (v.x != 0.0) //v isn't vertical
+			return u.x < 0.0 && v.x > 0.0 || u.x > 0.0 && v.x < 0.0;
+		else
+			return u.y < 0.0 && v.y > 0.0 || u.y > 0.0 && v.y < 0.0;;
+	}
+	return false;
+}
+
+bool Point::between(const Point & a, const Point & b) const
+{
+	if (collinear(a, b)) {
+		Point u = *this - a;
+		Point v = b - a;
+		return !back(a, b) && !front(a, b);
+	}
+	else
+		return false;
+}
+
 Float twiceArea(const Point & p, const Point & q, const Point & r)
 {
 	const Point v = q - p;
 	const Point w = r - p;
 	return det2x2(v.x,v.y,w.x,w.y);
-}
-
-Position classify(const Point & p, const Point & q, const Point& r)
-{
-	Float det = twiceArea(p,q,r);
-	if (det > 0.0) return LEFT;
-	if (det < 0.0) return RIGHT;
-	
-	Point v = q - p;
-	Point w = r - p;
-
-	Int vx = *reinterpret_cast<Int*>(&v.x);
-	Int vy = *reinterpret_cast<Int*>(&v.y);
-	Int wx = *reinterpret_cast<Int*>(&w.x);
-	Int wy = *reinterpret_cast<Int*>(&w.y);
-
-	if (((vx^wx) & (vy^wy)) >> 63)
-		return BACK;
-	Float dist_v = v.distOrigin();
-	Float dist_w = w.distOrigin();
-	if (dist_v <= dist_w)
-		return INSIDE;
-	return FRONT;
-
 }
 
 Point rotate90(const Point & p)
