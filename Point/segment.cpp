@@ -1,5 +1,11 @@
 #include <segment.h>
 
+Segment::Segment()
+{
+	p = Point{ 0.0,0.0 };
+	q = Point{ 0.0,0.0 };
+}
+
 Segment::Segment(const Point & a, const Point & b)
 {
 	p = a;

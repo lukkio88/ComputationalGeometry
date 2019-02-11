@@ -28,21 +28,24 @@ Point getDown(const Segment & s) {
 }
 
 bool SegmentComparator::operator()(const Segment & s, const Segment & r) {
-	if (getX(s, *y) < getX(r, *y))
+	Float xs, xr;
+	s.getX(*y, xs);
+	r.getX(*y, xr);
+	if (xs < xr)
 		return true;
-	else if (getX(s, *y) > getX(r, *y))
+	else if (xr > xr)
 		return false;
 	else {
 		Point v = getUp(s) - getDown(s);
 		Point w = getUp(r) - getDown(r);
 
-		double angle_v = v.angle();
-		double angle_w = w.angle();
+		Float angle_v = v.angle();
+		Float angle_w = w.angle();
 
 		if (above)
-			return angle_v < angle_w;
+			return angle_v > angle_w;
 		else
-			return angle_v >= angle_w;
+			return angle_v <= angle_w;
 	}
 }
 
@@ -55,10 +58,38 @@ static int size(const vector<Segment>& U, const vector<Segment>& C, const vector
 	return U.size() + C.size() + L.size();
 }
 
+static int size(const vector<Segment>& U, const vector<Segment>& C) {
+	return U.size() + C.size();
+}
+
 static bool findEvent(const Segment& l, const Segment& r, Point& p) {
-	if (l.does_intersect(r)) {
-		p = l.intersect(r);
-		return true;
+	return l.intersect(r, p);
+}
+
+static bool findLeftNeighboor(const SweepLine& tau, Float curr_y, Float x, Segment& sl) { //This assumes the flag "above" is false
+	Segment tmp{ Point{0.0,0.0},Point{1.0,0.0} };
+	SweepLineIter it = tau.lower_bound(tmp);
+	while (--it != tau.end()) {
+		Float curr_x;
+		it->getX(curr_y, curr_x);
+		if (curr_x != x) {
+			sl = *it;
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool findRightNeighboor(const SweepLine& tau, Float curr_y, Float x, Segment& sr) { //As findLeftNeighboor
+	Segment tmp{ Point{0.0,0.0},Point{1.0,0.0} };
+	SweepLineIter it = tau.lower_bound(tmp);
+	while (++it != tau.end()) {
+		Float curr_x;
+		it->getX(curr_y, curr_x);
+		if (curr_x != x) {
+			sr = *it;
+			return true;
+		}
 	}
 	return false;
 }
@@ -80,6 +111,8 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 	seg_cmp.above = &above;
 	std::vector<Segment> C, L;
 	SweepLine tau(seg_cmp);
+	Float curr_x;
+	Segment sl, sr;
 
 	while (!queue.empty()) {
 		
@@ -89,9 +122,11 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 		std::vector<Segment> U = queue.begin()->second;
 		queue.erase(queue.begin());
 
-		SweepLineIter it = tau.lower_bound(Segment{ Point{0.0,0.0},Point{-1.0,0.0} });
+		SweepLineIter it = tau.lower_bound(Segment{ Point{0.0,0.0},Point{-1.0,0.0} }); //this should always exist
+
 		//populating L and C
-		while (getX(*it,y_line) == p.x) {
+		it->getX(y_line, curr_x);
+		while (curr_x == p.x) {
 			if (getDown(*it) == p)
 				L.push_back(*it);
 			else
@@ -108,6 +143,35 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 		for (auto seg : C)
 			tau.insert(seg);
 
+		if (size(U, C) == 0) {
+			if (findLeftNeighboor(tau, y_line, p.x, sl) && findRightNeighboor(tau,y_line,p.x,sr)) {
+				Point new_event_pt;
+				if(findEvent(sl,sr, new_event_pt))
+					queue[new_event_pt];
+			}
+		}
+		else {
+			SweepLineIter it = tau.lower_bound(Segment{ Point{0.0,0.0},Point{-1.0,0.0} });
+			SweepLineIter it_1, it_2, it_l, it_r;
+			it_l = --it;
+			it_1 = ++it_l;
+			while (++it != tau.end()) {
+				if (it->getX(y_line, curr_x))
+					if (curr_x != p.x)
+						break;
+			}
+			it_r = it;
+			it_2 = --it;
+			if (it_l != tau.end() && it_1 != tau.end()) {
+				Point new_event_pt;
+				if (findEvent(*it_l, *it_1, new_event_pt))
+					queue[new_event_pt];
+			}
+			if (it_2 != tau.end() && it_r != tau.end()) {
+				Point new_event_pt;
+				if (findEvent(*it_2, *it_r, new_event_pt))
+					queue[new_event_pt];
+			}
+		}
 	}
-
 }

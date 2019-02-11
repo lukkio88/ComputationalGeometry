@@ -5,6 +5,7 @@
 
 class Segment {
 public:
+	Segment();
 	Segment(const Point& a, const Point& b);
 	Float length() const;
 	void swap_pts();
