@@ -29,8 +29,16 @@ Point getDown(const Segment & s) {
 
 bool SegmentComparator::operator()(const Segment & s, const Segment & r) const {
 	Float xs, xr;
-	s.getX(*y, xs);
-	r.getX(*y, xr);
+	if (s.isHorizontal())
+		xs = s.p.x;
+	else
+		s.getX(*y, xs);
+
+	if (r.isHorizontal())
+		xr = r.p.x;
+	else
+		r.getX(*y, xr);
+	
 	if (xs < xr)
 		return true;
 	else if (xs > xr)
@@ -120,6 +128,8 @@ static void findLeftmostAndRightmost(const Point& pt,const SweepLine& tau, Sweep
 	}
 }
 
+int n_iteration = 0;
+
 vector<Point> computeIntersection(vector<Segment> & S) {
 	PriorityQueue queue;
 	while (!S.empty()) {
@@ -141,6 +151,12 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 	Segment sl, sr;
 
 	while (!queue.empty()) {
+
+		n_iteration++;
+
+		if (n_iteration == 6) {
+			std::cout << "here it is, where this shit crashes..." << std::endl;
+		}
 		
 		Point p = queue.begin()->first;
 		y_line = p.y;

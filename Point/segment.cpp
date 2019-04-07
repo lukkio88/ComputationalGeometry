@@ -37,7 +37,9 @@ bool Segment::does_intersect(const Segment & r) const
 	const Point & c = r.p;
 	const Point & d = r.q;
 
-	return ((a.classify(c, d) == LEFT) && (b.classify(c, d) == RIGHT) && (c.classify(a, b) == LEFT) && (d.classify(a, b) == RIGHT));
+	return (twiceArea(c, d, a)*twiceArea(c, d, b) <= 0.0) && (twiceArea(a, b, c)*twiceArea(a, b, d) <= 0.0);
+
+	//return ((a.classify(c, d) == LEFT) && (b.classify(c, d) == RIGHT) && (c.classify(a, b) == LEFT) && (d.classify(a, b) == RIGHT));
 }
 
 bool Segment::intersect(const Segment& r, Point& pt) const
@@ -76,6 +78,10 @@ bool Segment::getPt(Float y, Point& pt) const
 	if (classify(pt) == INSIDE)
 		return true;
 	return false;
+}
+
+bool Segment::isHorizontal() const {
+	return p.y == q.y;
 }
 
 std::ostream& operator<<(std::ostream& os, const Segment& s) {

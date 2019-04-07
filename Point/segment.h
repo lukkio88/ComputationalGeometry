@@ -13,6 +13,7 @@ public:
 	bool intersect(const Segment& r, Point& pt) const;
 	bool getX(Float y, Float& x) const;
 	bool getPt(Float y, Point& pt) const;
+	bool isHorizontal() const;
 private:
 	bool does_intersect(const Segment& r) const;
 public:

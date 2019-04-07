@@ -101,6 +101,10 @@ bool Point::between(const Point & a, const Point & b) const
 		return false;
 }
 
+/*
+Test if r against the segment pq,
+	this implies construct the segment pr and pq and compute the determinant
+*/
 Float twiceArea(const Point & p, const Point & q, const Point & r)
 {
 	const Point v = q - p;
