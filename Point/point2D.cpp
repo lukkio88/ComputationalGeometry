@@ -123,3 +123,8 @@ Point operator*(Float alpha, const Point & p)
 {
 	return Point{ alpha*p.x,alpha*p.y };
 }
+
+
+std::ostream& operator<<(std::ostream& os, const Point& p) {
+	return (os << "(" << p.x << " ," << p.y << ")");
+}

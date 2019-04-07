@@ -20,4 +20,6 @@ public:
 	Point q; //destination
 };
 
+std::ostream& operator<<(std::ostream& os, const Segment& s);
+
 #endif

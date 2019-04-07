@@ -4,8 +4,9 @@ project(ComputationalGeometry)
 set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(./Point)
-set(INCLUDE_FOLDERS ./Point)
+set(INCLUDE_FOLDERS ./ ./Point)
 set(SRC_FILES main.cpp)
 
 add_executable(computational-geometry ${SRC_FILES})
+target_include_directories(computational-geometry PUBLIC ${INCLUDE_FOLDERS})
 target_link_libraries(computational-geometry 2d-geometry)

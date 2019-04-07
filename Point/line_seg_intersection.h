@@ -12,8 +12,11 @@ using std::pair;
 using std::vector;
 
 struct ComparePts {
-	bool operator()(const Point& p, const Point & q);
+	bool operator()(const Point& p, const Point & q) const;
 };
+
+using PriorityQueue = map<Point, vector<Segment>, ComparePts>;
+std::ostream& operator<<(std::ostream& os, const PriorityQueue& p);
 
 Point getMin(const Point & p, const Point & q);
 Point getMax(const Point & p, const Point & q);
@@ -22,13 +25,13 @@ Point getUp(const Segment &s);
 Point getDown(const Segment & s);
 
 struct SegmentComparator {
-	bool operator()(const Segment & s, const Segment & r);
+	bool operator()(const Segment & s, const Segment & r) const;
 	bool * above;
 	Float * y;
 };
 
-using PriorityQueue = map<Point, vector<Segment>,ComparePts>;
-using SweepLine = map<Float, Segment, SegmentComparator>;
+using SweepLine = set<Segment, SegmentComparator>;
+using SweepLineIter = SweepLine::iterator;
 
 vector<Point> computeIntersection(vector<Segment> & S);
 

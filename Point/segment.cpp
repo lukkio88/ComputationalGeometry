@@ -57,10 +57,16 @@ bool Segment::intersect(const Segment& r, Point& pt) const
 
 bool Segment::getX(Float y, Float& x) const
 {
-	Point pt;
-	bool inside = getPt(y, pt);
-	x = pt.x;
-	return inside;
+	if (p.y == q.y && q.y == y) { //pick origin in this case of the segment in this case
+		x = p.x;
+		return true;
+	}
+	else {
+		Point pt;
+		bool inside = getPt(y, pt);
+		x = pt.x;
+		return inside;
+	}
 }
 
 bool Segment::getPt(Float y, Point& pt) const
@@ -70,4 +76,8 @@ bool Segment::getPt(Float y, Point& pt) const
 	if (classify(pt) == INSIDE)
 		return true;
 	return false;
+}
+
+std::ostream& operator<<(std::ostream& os, const Segment& s) {
+	return (os << "{ " << s.p << " ," << s.q << "}");
 }
