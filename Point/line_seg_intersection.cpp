@@ -138,8 +138,6 @@ void StatusStructure::findLeftmostAndRightmost(const Point& pt,SweepLineIter& it
 	it_r--;
 }
 
-int n_iteration = 0;
-
 ostream& operator<<(ostream & os, const StatusStructure & tau)
 {
 	std::string curr_str;
@@ -166,16 +164,6 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 	Segment sl, sr;
 
 	while (!queue.empty()) {
-
-		std::cout << "Status : " << tau << std::endl;
-
-		n_iteration++;
-
-		if (n_iteration == 7) {
-			std::cout << "here it is, where this shit crashes..." << std::endl;
-		}
-
-
 
 		Point p = queue.begin()->first;
 		tau.y_line = p.y;
@@ -212,8 +200,6 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 			C.pop_back();
 		}
 
-		std::cout << "After reinsertion : " << tau << std::endl;
-
 		if (size_UC == 0) {
 			if (tau.findLeftNeighboor(p.x, sl) && tau.findRightNeighboor(p.x, sr)) {
 				Point new_event_pt;
@@ -225,17 +211,10 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 			tau.above = true;
 			SweepLineIter it_l, it_r, it_ll, it_rr;
 			tau.findLeftmostAndRightmost(p, it_l, it_r);
-			std::cout << "sl,sr : " << *it_l << "," << *it_r << std::endl;
 			it_ll = it_l;
 			it_rr = it_r;
 			--it_ll;
 			++it_rr;
-
-			if (it_ll != tau.nil)
-				std::cout << "it_ll : " << *it_ll << " ";
-			if (it_rr != tau.nil)
-				std::cout << "it_rr : " << *it_rr << " ";
-			std::cout << std::endl;
 
 			if (it_ll != tau.nil) {
 				Point new_event_pt;
