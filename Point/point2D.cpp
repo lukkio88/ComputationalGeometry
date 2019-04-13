@@ -128,6 +128,12 @@ Point operator*(Float alpha, const Point & p)
 	return Point{ alpha*p.x,alpha*p.y };
 }
 
+Point normalize(const Point & p)
+{
+	Float norm = p.distOrigin();
+	return Point{ p.x / norm,p.y / norm };
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Point& p) {
 	return (os << "(" << p.x << " ," << p.y << ")");

@@ -37,6 +37,7 @@ Float twiceArea(const Point& p, const Point& q, const Point& r);
 Point rotate90(const Point& p);
 Float l2dist(const Point& p, const Point& q);
 Point operator*(Float alpha, const Point& v);
+Point normalize(const Point& p);
 std::ostream& operator<<(std::ostream& os, const Point& p);
 
 #endif

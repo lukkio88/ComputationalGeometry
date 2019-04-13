@@ -32,6 +32,25 @@ struct SegmentComparator {
 
 using SweepLine = set<Segment, SegmentComparator>;
 using SweepLineIter = SweepLine::iterator;
+constexpr Float ths = 0.0001;
+
+struct StatusStructure {
+
+	StatusStructure();
+
+	SweepLineIter getIncident(const Point& p);
+	bool findLeftNeighboor(Float x, Segment& sl) const;
+	bool findRightNeighboor(Float x, Segment& sr) const;
+	void findLeftmostAndRightmost(const Point& pt, SweepLineIter& it_l, SweepLineIter& it_r);
+	
+	bool above;
+	Float y_line;
+	SegmentComparator segComp;
+	SweepLine sweepLine;
+	SweepLineIter nil;
+};
+
+std::ostream& operator<<(std::ostream& os, const StatusStructure& tau);
 
 vector<Point> computeIntersection(vector<Segment> & S);
 

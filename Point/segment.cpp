@@ -12,6 +12,13 @@ Segment::Segment(const Point & a, const Point & b)
 	q = b;
 }
 
+Segment::Segment(const Point & a, const Point & b, std::string label)
+{
+	p = a;
+	q = b;
+	this->label = label;
+}
+
 Float Segment::length() const
 {
 	return l2dist(p,q);
@@ -44,10 +51,12 @@ bool Segment::does_intersect(const Segment & r) const
 
 bool Segment::intersect(const Segment& r, Point& pt) const
 {
+
+	const Segment & s = *this;
+
 	if (!does_intersect(r))
 		return false;
 
-	const Segment & s = *this;
 	const Point & p = s.p -r.p;
 	const Point & v = r.q - r.p;
 	const Point & w = s.p - s.q;
@@ -75,7 +84,7 @@ bool Segment::getPt(Float y, Point& pt) const
 {
 	Float alpha = (y - p.y) / (q.y - p.y);
 	pt = p + alpha * (q - p);
-	if (classify(pt) == INSIDE)
+	if (0.0 <= alpha && alpha <= 1.0)
 		return true;
 	return false;
 }
@@ -85,5 +94,6 @@ bool Segment::isHorizontal() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Segment& s) {
-	return (os << "{ " << s.p << " ," << s.q << "}");
+	//return (os << "{ " << s.p << " ," << s.q << "}");
+	return (os << s.label);
 }
