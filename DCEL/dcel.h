@@ -47,7 +47,7 @@ public:
 /**
  * @brief this class represents a doubly connected edge list.
  */
-struct DCEL {
+class DCEL {
 public:
 	DCEL();
 
@@ -96,6 +96,10 @@ public:
 	inline VertexIter vNil() { return mVertex.end(); }
 	inline HalfEdgeIter heNil() { return mHalfEdge.end(); }
 	inline FaceIter fNil() { return mFace.end(); }
+
+	inline VertexIter vBegin() { return mVertex.begin(); }
+	inline HalfEdgeIter heBegin() { return mHalfEdge.begin(); }
+	inline FaceIter fBegin() { return mFace.begin(); }
 
 private:
 	vector<Vertex> mVertex;

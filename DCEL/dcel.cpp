@@ -82,13 +82,13 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 				auto boundaryNextHalfEdge = boundaryPrevHalfEdge->next;
 
 				cacheConsecutiveHalfEdge.push_back(
-					std::pair<HalfEdgeIter, HalfEdgeIter>{boundaryPrevHalfEdge, innerPrevHalfEdge->next}
+					std::make_pair(boundaryPrevHalfEdge, innerPrevHalfEdge->next)
 				);
 				cacheConsecutiveHalfEdge.push_back(
-					std::pair<HalfEdgeIter, HalfEdgeIter>{innerNextHalfEdge->prev,boundaryNextHalfEdge}
+					std::make_pair(innerNextHalfEdge->prev,boundaryNextHalfEdge)
 				);
 				cacheConsecutiveHalfEdge.push_back(
-					std::pair<HalfEdgeIter, HalfEdgeIter>{innerPrevHalfEdge,innerNextHalfEdge}
+					std::make_pair(innerPrevHalfEdge,innerNextHalfEdge)
 				);
 			}
 		}
@@ -117,24 +117,49 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 			auto outerNextHalfEdge = innerPrevHalfEdge->twin;
 			auto outerPrevHalfEdge = innerNextHalfEdge->twin;
 
-			if (idCase == 0x1)
+			if (idCase == 0x1) //current is new, next is old
 			{
 				auto boundaryPrevHalfEdge = innerNextHalfEdge->prev;
-				cacheConsecutiveHalfEdge.push_back(std::pair<HalfEdgeIter, HalfEdgeIter>{boundaryPrevHalfEdge, outerNextHalfEdge});
+				cacheConsecutiveHalfEdge.push_back(std::make_pair(boundaryPrevHalfEdge, outerNextHalfEdge));
 				ithP1vertexIter->incident = boundaryPrevHalfEdge;
 			}
-			else if (idCase == 0x2)
+			else if (idCase == 0x2) //current is old, next is new
 			{
 				auto boundaryNextHalfEdge = innerPrevHalfEdge->next;
-				cacheConsecutiveHalfEdge.push_back(std::pair<HalfEdgeIter, HalfEdgeIter>{outerPrevHalfEdge, boundaryNextHalfEdge});
-				ithP1vertexIter->incident = boundaryNextHalfEdge;
+				cacheConsecutiveHalfEdge.push_back(std::make_pair(outerPrevHalfEdge, boundaryNextHalfEdge));
+				ithP1vertexIter->incident = innerPrevHalfEdge;
 			}
-			else if (idCase == 0x3)
+			else if (idCase == 0x3) //both new
 			{
-
+				if (!isValid(ithP1vertexIter->incident->twin))
+				{
+					ithP1vertexIter->incident = innerPrevHalfEdge;
+					cacheConsecutiveHalfEdge.push_back(std::make_pair(outerPrevHalfEdge, outerNextHalfEdge));
+				}
+				else
+				{
+					auto boundaryNextHalfEdge = ithP1vertexIter->incident->twin;
+					auto boundaryPrevHalfEdge = boundaryNextHalfEdge->prev;
+					cacheConsecutiveHalfEdge.push_back(std::make_pair(boundaryPrevHalfEdge, outerNextHalfEdge));
+					cacheConsecutiveHalfEdge.push_back(std::make_pair(outerNextHalfEdge, boundaryNextHalfEdge));
+				}
 			}
+			cacheConsecutiveHalfEdge.push_back(std::make_pair(innerPrevHalfEdge, innerNextHalfEdge));
 		}
+		else {
+			//edgeData_[ii].needs_adjust = (halfedge_handle(vh) == inner_next);
+		}
+		halfEdge[i]->incident = faceIter;
 	}
+
+	//perform actual linking of the polygon boundary
+	for (auto & pair : cacheConsecutiveHalfEdge)
+	{
+		pair.first->next = pair.second;
+		pair.second->prev = pair.first;
+	}
+
+	//Final re-adjust of outgoing halfedges
 
 }
 

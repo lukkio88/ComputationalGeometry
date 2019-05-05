@@ -1,9 +1,10 @@
 #include <line_seg_intersection.h>
+#include <dcel.h>
 #include <vector>
 
 using std::vector;
 
-int main(int argc, char** argv) {
+int test_1(int argc, char** argv) {
 
 	vector<float> val{
 		-50.0, -50.0, 50.0, 50.0,
@@ -34,4 +35,30 @@ int main(int argc, char** argv) {
 	}
 
 	return 0;
+}
+
+int test_2(int argc, char** argv) {
+	return 0;
+}
+
+int main(int argc, char** argv) {
+
+	Point p[4]{
+		Point{-1.0,-1.0},
+		Point{1.0,-1.0},
+		Point{1.0,1.0},
+		Point{-1.0,1.0}
+	};
+
+	DCEL subdivision;
+
+	auto vh0 = subdivision.addVertex(p[0]);
+	auto vh1 = subdivision.addVertex(p[1]);
+	auto vh2 = subdivision.addVertex(p[2]);
+	auto vh3 = subdivision.addVertex(p[3]);
+
+	auto f0 = subdivision.addPoly(std::vector<VertexIter>({ vh0,vh1,vh2 }));
+	//auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh2,vh3,vh0 }));
+
+	return test_1(argc, argv);
 }
