@@ -3,17 +3,13 @@
 using std::cout;
 using std::endl;
 
-DCEL::DCEL() {
-	;
-}
-
 VertexIter DCEL::addVertex(Point coords) {
-	return mVertex.insert(mVertex.end(), Vertex{ coords,heNil() });
+	return mVertex.insert(mVertex.end(), Vertex{ coords,heEnd() });
 }
 
 HalfEdgeIter DCEL::addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) {
-	HalfEdgeIter inner = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{ vertexStart,heNil(),heNil(),heNil(),fNil() });
-	HalfEdgeIter outer = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{ vertexEnd,heNil(),heNil(),heNil(),fNil() });
+	HalfEdgeIter inner = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{vertexStart,heEnd(),heEnd(),heEnd(),fEnd()});
+	HalfEdgeIter outer = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{vertexEnd, heEnd(),heEnd(),heEnd(),fEnd()});
 	inner->twin = outer;
 	outer->twin = inner;
 	vertexStart->incident = outer;
@@ -34,16 +30,16 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 		if (!isBoundary(vertex[i]))
 		{
 			std::cout << "Error in addPoly, one of the vertices isn't boundary" << std::endl;
-			return fNil();
+			return fEnd();
 		}
 
 		int iPlus1 = (i + 1) % numVertices;
 		halfEdge[i] = getHalfEdge(vertex[i], vertex[iPlus1]);
-		halfEdgeNew[i] = isBoundary(halfEdge[i]);
-		if (!(isValid(halfEdge[i]) && isBoundary(halfEdge[i]))) //true if NOT incident to the unbounded face 
+		halfEdgeNew[i] = !isValid(halfEdge[i]);
+		if ((!halfEdgeNew[i]) && isBoundary(halfEdge[i])) //true if NOT incident to the unbounded face 
 		{
 			std::cout << "Error in addPoly, one of the half edges isn't incident to the unbounded face" << std::endl;
-			return fNil();
+			return fEnd();
 		}
 	}
 
@@ -57,7 +53,7 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 			halfEdge[i] = addHalfEdge(vertex[i], vertex[iPlus1]);
 		}
 		
-		if (!halfEdgeNew[i] && !halfEdgeNew[i])
+		if (!halfEdgeNew[i] && !halfEdgeNew[iPlus1])
 		{
 
 			auto innerPrevHalfEdge = halfEdge[i];
@@ -76,7 +72,7 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 				if (boundaryPrevHalfEdge == innerPrevHalfEdge) 
 				{
 					std::cout << "Topology error when executing addPoly method" << std::endl;
-					return fNil();
+					return fEnd();
 				}
 
 				auto boundaryNextHalfEdge = boundaryPrevHalfEdge->next;
@@ -131,7 +127,7 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 			}
 			else if (idCase == 0x3) //both new
 			{
-				if (!isValid(ithP1vertexIter->incident->twin))
+				if (!isIsolated(ithVertexIter))
 				{
 					ithP1vertexIter->incident = innerPrevHalfEdge;
 					cacheConsecutiveHalfEdge.push_back(std::make_pair(outerPrevHalfEdge, outerNextHalfEdge));
@@ -160,18 +156,27 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 	}
 
 	//Final re-adjust of outgoing halfedges
-
+	for (auto & currentVertex : vertex)
+		adjustVertex(currentVertex);
 }
 
-bool DCEL::isBoundary(VertexIter v) {
-	return (v->incident == heNil() || isBoundary(v->incident));
+bool DCEL::isIsolated(VertexIter vertexIter)
+{
+	return vertexIter->incident == heEnd();
 }
 
-bool DCEL::isBoundary(HalfEdgeIter he) {
-	return (he->incident == fNil());
+bool DCEL::isBoundary(VertexIter vertexIter) 
+{
+	return (isIsolated(vertexIter) || isBoundary(vertexIter->incident));
 }
 
-bool DCEL::isBoundary(FaceIter f) {
+bool DCEL::isBoundary(HalfEdgeIter he) 
+{
+	return (he->incident == fEnd());
+}
+
+bool DCEL::isBoundary(FaceIter f) 
+{
 	auto he = f->outer;
 	auto curr_he = he;
 	do {
@@ -181,17 +186,42 @@ bool DCEL::isBoundary(FaceIter f) {
 	} while (curr_he != he);
 }
 
-bool DCEL::isValid(HalfEdgeIter halfEdgeIter) {
-	return (halfEdgeIter != heNil());
+bool DCEL::isValid(HalfEdgeIter halfEdgeIter) 
+{
+	return (halfEdgeIter != heEnd());
 }
 
-HalfEdgeIter DCEL::getHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) {
-	auto incidentHalfEdge = vertexEnd->incident;
-	auto currentHalfEdge = incidentHalfEdge;
-	do {
-		if (currentHalfEdge->origin == vertexStart)
-			return currentHalfEdge;
-	} while (currentHalfEdge != incidentHalfEdge);
+HalfEdgeIter DCEL::adjustVertex(VertexIter vertexIter) {
+	if (isIsolated(vertexIter))
+		return heEnd();
 
-	return heNil();
+	auto halfEdgeSentinel = vertexIter->incident;
+	auto currHalfEdge = halfEdgeSentinel;
+	do {
+		if(isBoundary(currHalfEdge->twin))
+		{
+			vertexIter->incident = currHalfEdge;
+			return currHalfEdge;
+		}
+		currHalfEdge = currHalfEdge->next->twin;
+	} while (currHalfEdge != halfEdgeSentinel);
+
+	return vertexIter->incident;
+
+}
+
+HalfEdgeIter DCEL::getHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) 
+{
+	
+	if (!isIsolated(vertexStart))
+	{
+		auto incidentHalfEdge = vertexEnd->incident;
+		auto currentHalfEdge = incidentHalfEdge;
+		do {
+			if (currentHalfEdge->origin == vertexStart)
+				return currentHalfEdge;
+		} while (currentHalfEdge != incidentHalfEdge);
+	}
+
+	return heEnd();
 }

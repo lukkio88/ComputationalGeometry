@@ -38,16 +38,26 @@ int test_1(int argc, char** argv) {
 }
 
 int test_2(int argc, char** argv) {
+	std::list<int> v;
+	v.insert(v.end(), { 1,2,3,4,5 });
+	std::list<int>::iterator it1 = v.end();
+	auto it_tmp = v.insert(it1, 6);
+	std::list<int>::iterator it2 = v.end();
+
+	std::cout << (it1 == it2) << std::endl;
+
 	return 0;
 }
 
 int main(int argc, char** argv) {
 
+	//test_2(argc,argv);
+
 	Point p[4]{
-		Point{-1.0,-1.0},
-		Point{1.0,-1.0},
-		Point{1.0,1.0},
-		Point{-1.0,1.0}
+		{-1.0,-1.0},
+		{1.0,-1.0},
+		{1.0,1.0},
+		{-1.0,1.0}
 	};
 
 	DCEL subdivision;
@@ -58,7 +68,16 @@ int main(int argc, char** argv) {
 	auto vh3 = subdivision.addVertex(p[3]);
 
 	auto f0 = subdivision.addPoly(std::vector<VertexIter>({ vh0,vh1,vh2 }));
-	//auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh2,vh3,vh0 }));
+	if (f0 != subdivision.fEnd())
+	{
+		std::cout << "f0 created!" << std::endl;
+	}
+
+	auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh2,vh3,vh0 }));
+	if (f1 != subdivision.fEnd())
+	{
+		std::cout << "f1 created!" << std::endl;
+	}
 
 	return test_1(argc, argv);
 }

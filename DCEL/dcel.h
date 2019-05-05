@@ -2,20 +2,22 @@
 #include <segment.h>
 #include <vector>
 #include <algorithm>
-
-using std::vector;
+#include <list>
 
 class Vertex;
 class HalfEdge;
 class Face;
 class DCEL;
 
-using VertexIter = vector<Vertex>::iterator;
-using HalfEdgeIter = vector<HalfEdge>::iterator;
-using FaceIter = vector<Face>::iterator;
-using VertexCIter = vector<Vertex>::const_iterator;
-using HalfEdgeCIter = vector<HalfEdge>::const_iterator;
-using FaceCIter = vector<Face>::const_iterator;
+template<typename T>
+using container = std::list<T>;
+
+using VertexIter = container<Vertex>::iterator;
+using HalfEdgeIter = container<HalfEdge>::iterator;
+using FaceIter = container<Face>::iterator;
+using VertexCIter = container<Vertex>::const_iterator;
+using HalfEdgeCIter = container<HalfEdge>::const_iterator;
+using FaceCIter = container<Face>::const_iterator;
 
 /**
 * @brief Represents a vertex
@@ -49,9 +51,24 @@ public:
  */
 class DCEL {
 public:
-	DCEL();
+	DCEL(int reserveVertex = 1000, int reserveHalfEdge = 1000, int reserveFace = 1000) 
+	{
 
-	//boolean predicates
+		//Setting sentinels
+		/*mVertexNil->incident = mHalfEdgeNil;
+
+		mHalfEdgeNil->origin = mVertexNil;
+		mHalfEdgeNil->incident = mFaceNil;
+		mHalfEdgeNil->next = mHalfEdgeNil->prev = mHalfEdgeNil->twin = mHalfEdgeNil;
+
+		mFaceNil->outer = mHalfEdgeNil;*/
+
+	}
+
+	/**
+	@brief return true if the incident half edge is nil, false otherwise
+	*/
+	bool isIsolated(VertexIter vertexIter);
 
 	/**
 	@brief Check if the vertex is either isolated or incident to the unbounded face
@@ -75,6 +92,11 @@ public:
 	bool isValid(HalfEdgeIter halfEdgeIter);
 
 	/**
+	@brief Adjusting vertex, so that the incident half edge is the twin of a boundary one
+	*/
+	HalfEdgeIter adjustVertex(VertexIter vertexIter);
+
+	/**
 	@brief add a single isolated vertex
 	*/
 	VertexIter addVertex(Point coords);
@@ -93,16 +115,17 @@ public:
 	*/
 	HalfEdgeIter getHalfEdge(VertexIter vertexStart, VertexIter vertexEnd);
 
-	inline VertexIter vNil() { return mVertex.end(); }
-	inline HalfEdgeIter heNil() { return mHalfEdge.end(); }
-	inline FaceIter fNil() { return mFace.end(); }
-
 	inline VertexIter vBegin() { return mVertex.begin(); }
 	inline HalfEdgeIter heBegin() { return mHalfEdge.begin(); }
 	inline FaceIter fBegin() { return mFace.begin(); }
 
+	inline VertexIter vEnd() { return mVertex.end(); }
+	inline HalfEdgeIter heEnd() { return mHalfEdge.end(); }
+	inline FaceIter fEnd() { return mFace.end(); }
+
 private:
-	vector<Vertex> mVertex;
-	vector<HalfEdge> mHalfEdge;
-	vector<Face> mFace;
+
+	container<Vertex> mVertex;
+	container<HalfEdge> mHalfEdge;
+	container<Face> mFace;
 };
