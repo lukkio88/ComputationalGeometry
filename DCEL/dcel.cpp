@@ -4,7 +4,8 @@ using std::cout;
 using std::endl;
 
 VertexIter DCEL::addVertex(Point coords) {
-	return mVertex.insert(mVertex.end(), Vertex{ coords,heEnd() });
+	int idx = mVertex.size();
+	return mVertex.insert(mVertex.end(), Vertex{ idx, coords,heEnd() });
 }
 
 HalfEdgeIter DCEL::addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) {
@@ -155,9 +156,12 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 		pair.second->prev = pair.first;
 	}
 
-	//Final re-adjust of outgoing halfedges
+	//Final re-adjust of the ingoing halfedges
 	for (auto & currentVertex : vertex)
 		adjustVertex(currentVertex);
+
+	return faceIter;
+
 }
 
 bool DCEL::isIsolated(VertexIter vertexIter)
@@ -198,7 +202,7 @@ HalfEdgeIter DCEL::adjustVertex(VertexIter vertexIter) {
 	auto halfEdgeSentinel = vertexIter->incident;
 	auto currHalfEdge = halfEdgeSentinel;
 	do {
-		if(isBoundary(currHalfEdge->twin))
+		if(isBoundary(currHalfEdge))
 		{
 			vertexIter->incident = currHalfEdge;
 			return currHalfEdge;
@@ -215,11 +219,14 @@ HalfEdgeIter DCEL::getHalfEdge(VertexIter vertexStart, VertexIter vertexEnd)
 	
 	if (!isIsolated(vertexStart))
 	{
-		auto incidentHalfEdge = vertexEnd->incident;
+		auto incidentHalfEdge = vertexStart->incident;
 		auto currentHalfEdge = incidentHalfEdge;
 		do {
-			if (currentHalfEdge->origin == vertexStart)
-				return currentHalfEdge;
+			if (currentHalfEdge->origin == vertexEnd)
+			{
+				return currentHalfEdge->twin;
+			}
+			currentHalfEdge = currentHalfEdge->next->twin;
 		} while (currentHalfEdge != incidentHalfEdge);
 	}
 

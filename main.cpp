@@ -73,6 +73,14 @@ int main(int argc, char** argv) {
 		std::cout << "f0 created!" << std::endl;
 	}
 
+	auto vh_sentinel = f0->outer->origin;
+	auto curr_vh = vh_sentinel;
+	do
+	{
+		std::cout << (curr_vh->idx) << std::endl;
+		curr_vh = curr_vh->incident->next->twin->origin;
+	} while (curr_vh != vh_sentinel);
+
 	auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh2,vh3,vh0 }));
 	if (f1 != subdivision.fEnd())
 	{

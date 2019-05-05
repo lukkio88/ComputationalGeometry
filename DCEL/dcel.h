@@ -24,6 +24,7 @@ using FaceCIter = container<Face>::const_iterator;
 */
 class Vertex {
 public:
+	int idx;
 	Point coords;
 	HalfEdgeIter incident;
 };
@@ -51,27 +52,13 @@ public:
  */
 class DCEL {
 public:
-	DCEL(int reserveVertex = 1000, int reserveHalfEdge = 1000, int reserveFace = 1000) 
-	{
-
-		//Setting sentinels
-		/*mVertexNil->incident = mHalfEdgeNil;
-
-		mHalfEdgeNil->origin = mVertexNil;
-		mHalfEdgeNil->incident = mFaceNil;
-		mHalfEdgeNil->next = mHalfEdgeNil->prev = mHalfEdgeNil->twin = mHalfEdgeNil;
-
-		mFaceNil->outer = mHalfEdgeNil;*/
-
-	}
-
 	/**
 	@brief return true if the incident half edge is nil, false otherwise
 	*/
 	bool isIsolated(VertexIter vertexIter);
 
 	/**
-	@brief Check if the vertex is either isolated or incident to the unbounded face
+	@brief Check if the ingoing half edge is boundary
 	*/
 	bool isBoundary(VertexIter vertexIter);
 
