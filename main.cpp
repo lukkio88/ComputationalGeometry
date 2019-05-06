@@ -68,24 +68,20 @@ int main(int argc, char** argv) {
 	auto vh3 = subdivision.addVertex(p[3]);
 
 	auto f0 = subdivision.addPoly(std::vector<VertexIter>({ vh0,vh1,vh2 }));
-	if (f0 != subdivision.fEnd())
-	{
-		std::cout << "f0 created!" << std::endl;
-	}
-
-	auto vh_sentinel = f0->outer->origin;
-	auto curr_vh = vh_sentinel;
-	do
-	{
-		std::cout << (curr_vh->idx) << std::endl;
-		curr_vh = curr_vh->incident->next->twin->origin;
-	} while (curr_vh != vh_sentinel);
-
 	auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh2,vh3,vh0 }));
-	if (f1 != subdivision.fEnd())
-	{
-		std::cout << "f1 created!" << std::endl;
+
+	//Iterating through all the faces and printing all the indices
+	for (auto f = subdivision.fBegin(); f != subdivision.fEnd(); ++f) {
+		auto he_sentinel = f->outer;
+		auto curr_he = he_sentinel;
+		do
+		{
+			std::cout << curr_he->origin->idx << " ";
+			curr_he = curr_he->next;
+		} while (curr_he != he_sentinel);
+		std::cout << std::endl;
 	}
 
-	return test_1(argc, argv);
+
+	return 0;
 }

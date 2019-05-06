@@ -110,6 +110,8 @@ public:
 	inline HalfEdgeIter heEnd() { return mHalfEdge.end(); }
 	inline FaceIter fEnd() { return mFace.end(); }
 
+	//TODO: Implement circulators
+
 private:
 
 	container<Vertex> mVertex;

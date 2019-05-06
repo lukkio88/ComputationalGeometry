@@ -13,8 +13,6 @@ HalfEdgeIter DCEL::addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) {
 	HalfEdgeIter outer = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{vertexEnd, heEnd(),heEnd(),heEnd(),fEnd()});
 	inner->twin = outer;
 	outer->twin = inner;
-	vertexStart->incident = outer;
-	vertexEnd->incident = inner;
 	return inner;
 }
 
@@ -37,7 +35,7 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 		int iPlus1 = (i + 1) % numVertices;
 		halfEdge[i] = getHalfEdge(vertex[i], vertex[iPlus1]);
 		halfEdgeNew[i] = !isValid(halfEdge[i]);
-		if ((!halfEdgeNew[i]) && isBoundary(halfEdge[i])) //true if NOT incident to the unbounded face 
+		if ((!halfEdgeNew[i]) && !isBoundary(halfEdge[i])) //true if NOT incident to the unbounded face 
 		{
 			std::cout << "Error in addPoly, one of the half edges isn't incident to the unbounded face" << std::endl;
 			return fEnd();
@@ -118,17 +116,17 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 			{
 				auto boundaryPrevHalfEdge = innerNextHalfEdge->prev;
 				cacheConsecutiveHalfEdge.push_back(std::make_pair(boundaryPrevHalfEdge, outerNextHalfEdge));
-				ithP1vertexIter->incident = boundaryPrevHalfEdge;
+				ithP1vertexIter->incident = innerPrevHalfEdge;
 			}
 			else if (idCase == 0x2) //current is old, next is new
 			{
 				auto boundaryNextHalfEdge = innerPrevHalfEdge->next;
 				cacheConsecutiveHalfEdge.push_back(std::make_pair(outerPrevHalfEdge, boundaryNextHalfEdge));
-				ithP1vertexIter->incident = innerPrevHalfEdge;
+				ithP1vertexIter->incident = boundaryNextHalfEdge->twin;
 			}
 			else if (idCase == 0x3) //both new
 			{
-				if (!isIsolated(ithVertexIter))
+				if (isIsolated(ithP1vertexIter))
 				{
 					ithP1vertexIter->incident = innerPrevHalfEdge;
 					cacheConsecutiveHalfEdge.push_back(std::make_pair(outerPrevHalfEdge, outerNextHalfEdge));
