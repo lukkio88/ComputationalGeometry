@@ -133,10 +133,10 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 				}
 				else
 				{
-					auto boundaryNextHalfEdge = ithP1vertexIter->incident->twin;
-					auto boundaryPrevHalfEdge = boundaryNextHalfEdge->prev;
+					auto boundaryPrevHalfEdge = ithP1vertexIter->incident;
+					auto boundaryNextHalfEdge = boundaryPrevHalfEdge->next;
 					cacheConsecutiveHalfEdge.push_back(std::make_pair(boundaryPrevHalfEdge, outerNextHalfEdge));
-					cacheConsecutiveHalfEdge.push_back(std::make_pair(outerNextHalfEdge, boundaryNextHalfEdge));
+					cacheConsecutiveHalfEdge.push_back(std::make_pair(outerPrevHalfEdge, boundaryNextHalfEdge));
 				}
 			}
 			cacheConsecutiveHalfEdge.push_back(std::make_pair(innerPrevHalfEdge, innerNextHalfEdge));

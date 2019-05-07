@@ -53,24 +53,33 @@ int main(int argc, char** argv) {
 
 	//test_2(argc,argv);
 
-	Point p[4]{
-		{-1.0,-1.0},
-		{1.0,-1.0},
-		{1.0,1.0},
-		{-1.0,1.0}
+	std::vector<Point> point{
+		{ 1.0,0.0 },
+		{ 0.0,0.0 },
+		{-1.0,0.0},
+		{-0.5,1.0},
+		{0.5,1.0},
+		{0.5,-1.0},
+		{-0.5,-1.0},
+		{0.0,-2.0}
 	};
+
+	std::vector<VertexIter> vh(point.size());
 
 	DCEL subdivision;
 
-	auto vh0 = subdivision.addVertex(p[0]);
-	auto vh1 = subdivision.addVertex(p[1]);
-	auto vh2 = subdivision.addVertex(p[2]);
-	auto vh3 = subdivision.addVertex(p[3]);
+	for (int i = 0; i < point.size(); ++i)
+	{
+		vh[i] = subdivision.addVertex(point[i]);
+	}
 
-	auto f0 = subdivision.addPoly(std::vector<VertexIter>({ vh0,vh1,vh2 }));
-	auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh2,vh3,vh0 }));
+	auto f0 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[4],vh[1] }));
+	auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh[1],vh[3],vh[2] }));
+	auto f2 = subdivision.addPoly(std::vector<VertexIter>({ vh[6],vh[1],vh[5] }));
+	auto f3 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[1],vh[2],vh[7] }));
 
 	//Iterating through all the faces and printing all the indices
+	std::cout << "Printing inner boundary! : " << std::endl;
 	for (auto f = subdivision.fBegin(); f != subdivision.fEnd(); ++f) {
 		auto he_sentinel = f->outer;
 		auto curr_he = he_sentinel;
@@ -82,6 +91,17 @@ int main(int argc, char** argv) {
 		std::cout << std::endl;
 	}
 
+	std::cout << "Printing outer boundary! : " << std::endl;
+	for (auto f = subdivision.fBegin(); f != subdivision.fEnd(); ++f) {
+		auto he_sentinel = f->outer->twin;
+		auto curr_he = he_sentinel;
+		do
+		{
+			std::cout << curr_he->origin->idx << " ";
+			curr_he = curr_he->next;
+		} while (curr_he != he_sentinel);
+		std::cout << std::endl;
+	}
 
 	return 0;
 }
