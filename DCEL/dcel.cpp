@@ -89,7 +89,7 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 		}
 	}
 
-	auto faceIter = mFace.insert(mFace.end(), Face{ halfEdge[0] });
+	auto faceIter = mFace.insert(mFace.end(), Face{ halfEdge.back() });
 
 	for (int i = 0; i < vertex.size(); ++i)
 	{
@@ -140,9 +140,6 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 				}
 			}
 			cacheConsecutiveHalfEdge.push_back(std::make_pair(innerPrevHalfEdge, innerNextHalfEdge));
-		}
-		else {
-			//edgeData_[ii].needs_adjust = (halfedge_handle(vh) == inner_next);
 		}
 		halfEdge[i]->incident = faceIter;
 	}

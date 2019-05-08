@@ -49,6 +49,32 @@ int test_2(int argc, char** argv) {
 	return 0;
 }
 
+static void print_inner_boundary(FaceIter f)
+{
+	std::cout << "Printing inner boundary : " << std::endl;
+	auto he_sentinel = f->outer;
+	auto curr_he = he_sentinel;
+	do
+	{
+		std::cout << curr_he->origin->idx << " ";
+		curr_he = curr_he->next;
+	} while (curr_he != he_sentinel);
+	std::cout << std::endl;
+}
+
+static void print_outer_boundary(FaceIter f)
+{
+	std::cout << "Printing outer boundary! : " << std::endl;
+	auto he_sentinel = f->outer->twin;
+	auto curr_he = he_sentinel;
+	do
+	{
+		std::cout << curr_he->origin->idx << " ";
+		curr_he = curr_he->next;
+	} while (curr_he != he_sentinel);
+	std::cout << std::endl;
+}
+
 int main(int argc, char** argv) {
 
 	//test_2(argc,argv);
@@ -73,35 +99,23 @@ int main(int argc, char** argv) {
 		vh[i] = subdivision.addVertex(point[i]);
 	}
 
+	std::cout << "Insert f0" << std::endl;
 	auto f0 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[4],vh[1] }));
+	print_outer_boundary(f0);
+
+	std::cout << "Insert f1" << std::endl;
 	auto f1 = subdivision.addPoly(std::vector<VertexIter>({ vh[1],vh[3],vh[2] }));
+	print_outer_boundary(f1);
+
+	std::cout << "Insert f2" << std::endl;
 	auto f2 = subdivision.addPoly(std::vector<VertexIter>({ vh[6],vh[1],vh[5] }));
+	print_outer_boundary(f2);
+
+	std::cout << "Insert f3" << std::endl;
 	auto f3 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[1],vh[2],vh[7] }));
+	print_outer_boundary(f3);
 
 	//Iterating through all the faces and printing all the indices
-	std::cout << "Printing inner boundary! : " << std::endl;
-	for (auto f = subdivision.fBegin(); f != subdivision.fEnd(); ++f) {
-		auto he_sentinel = f->outer;
-		auto curr_he = he_sentinel;
-		do
-		{
-			std::cout << curr_he->origin->idx << " ";
-			curr_he = curr_he->next;
-		} while (curr_he != he_sentinel);
-		std::cout << std::endl;
-	}
-
-	std::cout << "Printing outer boundary! : " << std::endl;
-	for (auto f = subdivision.fBegin(); f != subdivision.fEnd(); ++f) {
-		auto he_sentinel = f->outer->twin;
-		auto curr_he = he_sentinel;
-		do
-		{
-			std::cout << curr_he->origin->idx << " ";
-			curr_he = curr_he->next;
-		} while (curr_he != he_sentinel);
-		std::cout << std::endl;
-	}
 
 	return 0;
 }
