@@ -158,6 +158,73 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 	return faceIter;
 
 }
+//Todo: test this method
+VertexIter DCEL::splitEdge(float alpha, VertexIter start, VertexIter end) 
+{
+	HalfEdgeIter start2End = getHalfEdge(start, end);
+	HalfEdgeIter end2Start = start2End->twin;
+	HalfEdgeIter halfEdgeInner = start2End->next;
+	HalfEdgeIter halfEdgeOuter = end2Start->prev;
+	FaceIter faceInner = start2End->incident;
+	FaceIter faceOuter = end2Start->incident;
+
+	VertexIter vertexIter = addVertex((1.0f - alpha)*(start->coords) + alpha * (end->coords));
+	HalfEdgeIter new2End = mHalfEdge.insert(heEnd(), 
+		HalfEdge{vertexIter,start2End,heEnd(),start2End->next,faceInner});
+	HalfEdgeIter end2New = mHalfEdge.insert(heEnd(), 
+		HalfEdge{end,halfEdgeOuter,heEnd(),end2Start,faceOuter});
+
+	new2End->twin = end2New;
+	end2New->twin = new2End;
+
+	halfEdgeInner->prev = new2End;
+	end2Start->origin = vertexIter;
+	end2Start->prev = end2New;
+
+	return vertexIter;
+}
+
+//Todo: test this method
+FaceIter DCEL::join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd)
+{
+	if (halfEdgeStart->incident != halfEdgeEnd->incident)
+		return fEnd();
+
+	if (halfEdgeStart != halfEdgeEnd->prev)
+		return halfEdgeStart->incident;
+
+	HalfEdgeIter startPrev = halfEdgeStart->prev;
+	HalfEdgeIter endPrev = halfEdgeEnd->prev;
+	VertexIter startVertex = halfEdgeStart->origin;
+	VertexIter endVertex = halfEdgeEnd->origin;
+	FaceIter face = halfEdgeStart->incident;
+	FaceIter faceNew = mFace.insert(fEnd(), Face{ halfEdgeEnd });
+
+	HalfEdgeIter start2End = mHalfEdge.insert(heEnd(),
+		HalfEdge{ startVertex,startPrev,heEnd(),halfEdgeEnd,faceNew }
+		);
+
+	HalfEdgeIter end2Start = mHalfEdge.insert(heEnd(),
+		HalfEdge{ endVertex,endPrev,heEnd(),halfEdgeStart,face}
+	);
+
+	start2End->twin = end2Start;
+	end2Start->twin = start2End;
+
+	halfEdgeEnd->prev = start2End;
+	halfEdgeStart->prev = end2Start;
+	startPrev->next = start2End;
+	endPrev->next = end2Start;
+
+	//Adjusting related half edges to point to the new face
+	HalfEdgeIter current = start2End;
+	do
+	{
+		current->incident = faceNew;
+		current = current->next;
+	} while (current != start2End);
+
+}
 
 bool DCEL::isIsolated(VertexIter vertexIter)
 {
@@ -226,4 +293,21 @@ HalfEdgeIter DCEL::getHalfEdge(VertexIter vertexStart, VertexIter vertexEnd)
 	}
 
 	return heEnd();
+}
+
+HalfEdgeIter DCEL::getHalfEdge(VertexIter vertex, FaceIter face)
+{
+	if (isIsolated(vertex))
+		return heEnd();
+
+	auto incidentHalfEdge = vertex->incident;
+	auto currentHalfEdge = incidentHalfEdge;
+	do
+	{
+		if (currentHalfEdge->incident == face)
+			return currentHalfEdge;
+	} while (currentHalfEdge != incidentHalfEdge);
+
+	return heEnd();
+
 }

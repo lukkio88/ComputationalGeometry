@@ -112,10 +112,25 @@ public:
 	*/
 	FaceIter addPoly(std::vector<VertexIter> vertexIter);
 
+	/**
+	@brief Splitting the edge start-end into two
+	*/
+	VertexIter splitEdge(float alpha, VertexIter start, VertexIter end);
+
+	/**
+	@brief joint the origin vertex of two halfedges if they're incident to the same face
+	*/
+	FaceIter join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd);
+
 	/*
 	@brief Returns the half edge going from start to end, if exists, nil otherwise
 	*/
 	HalfEdgeIter getHalfEdge(VertexIter vertexStart, VertexIter vertexEnd);
+
+	/**
+	@brief Get half edge whose origin is in vertex and incident face is face
+	*/
+	HalfEdgeIter DCEL::getHalfEdge(VertexIter vertex, FaceIter face);
 
 	inline VertexIter vBegin() { return mVertex.begin(); }
 	inline HalfEdgeIter heBegin() { return mHalfEdge.begin(); }
