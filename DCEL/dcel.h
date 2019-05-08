@@ -79,6 +79,21 @@ public:
 	bool isValid(HalfEdgeIter halfEdgeIter);
 
 	/**
+	@brief Return num vertices
+	*/
+	inline int numVertices() const { return mVertex.size(); }
+
+	/**
+	@brief Return num edges
+	*/
+	inline int numEdges() const { return mHalfEdge.size() / 2; }
+
+	/**
+	@brief Return num faces
+	*/
+	inline int numFaces() const { return mFace.size(); }
+
+	/**
 	@brief Adjusting vertex, so that the incident half edge is the twin of a boundary one
 	*/
 	HalfEdgeIter adjustVertex(VertexIter vertexIter);

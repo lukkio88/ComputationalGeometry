@@ -1,5 +1,5 @@
 #include <line_seg_intersection.h>
-#include <dcel.h>
+#include <dcelIO.h>
 #include <vector>
 
 using std::vector;
@@ -114,6 +114,8 @@ int main(int argc, char** argv) {
 	std::cout << "Insert f3" << std::endl;
 	auto f3 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[1],vh[2],vh[7] }));
 	print_outer_boundary(f3);
+
+	dumpPly(subdivision, "test.ply");
 
 	//Iterating through all the faces and printing all the indices
 
