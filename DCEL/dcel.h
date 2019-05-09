@@ -115,7 +115,7 @@ public:
 	/**
 	@brief Splitting the edge start-end into two
 	*/
-	VertexIter splitEdge(float alpha, VertexIter start, VertexIter end);
+	VertexIter splitEdge(float alpha, HalfEdgeIter innerHalfEdge);
 
 	/**
 	@brief joint the origin vertex of two halfedges if they're incident to the same face

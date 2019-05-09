@@ -85,8 +85,8 @@ int main(int argc, char** argv) {
 		{-1.0,0.0},
 		{-0.5,1.0},
 		{0.5,1.0},
-		{0.5,-1.0},
 		{-0.5,-1.0},
+		{0.5,-1.0},
 		{0.0,-2.0}
 	};
 
@@ -114,6 +114,12 @@ int main(int argc, char** argv) {
 	std::cout << "Insert f3" << std::endl;
 	auto f3 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[1],vh[2],vh[7] }));
 	print_outer_boundary(f3);
+
+	auto he = subdivision.getHalfEdge(vh[0], vh[1]);
+
+	auto vertexIter = subdivision.splitEdge(0.5f,he);
+
+	std::cout << vertexIter->coords << std::endl;
 
 	dumpPly(subdivision, "test.ply");
 

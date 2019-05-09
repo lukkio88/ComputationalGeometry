@@ -39,3 +39,19 @@ void dumpPly(DCEL& subdivision, const std::string& filename)
 
 	outputStream.close();
 }
+
+void readPly(DCEL& subdivision, const std::string& filename)
+{
+	std::ifstream inputStream(filename);
+
+	//Pseudocde
+	/*
+	1. Read the header part and reserve the right amount of memory in vertex handle array
+	2. For each vertex line
+		push vertex in the subdivision and store the related vertex handle in the array
+	3. For each face line
+		create the associated face of the subdivision
+	*/
+
+	inputStream.close();
+}

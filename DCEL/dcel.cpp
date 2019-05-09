@@ -159,29 +159,35 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 
 }
 //Todo: test this method
-VertexIter DCEL::splitEdge(float alpha, VertexIter start, VertexIter end) 
+VertexIter DCEL::splitEdge(float alpha, HalfEdgeIter innerHalfEdge)
 {
-	HalfEdgeIter start2End = getHalfEdge(start, end);
-	HalfEdgeIter end2Start = start2End->twin;
-	HalfEdgeIter halfEdgeInner = start2End->next;
-	HalfEdgeIter halfEdgeOuter = end2Start->prev;
-	FaceIter faceInner = start2End->incident;
-	FaceIter faceOuter = end2Start->incident;
 
-	VertexIter vertexIter = addVertex((1.0f - alpha)*(start->coords) + alpha * (end->coords));
-	HalfEdgeIter new2End = mHalfEdge.insert(heEnd(), 
-		HalfEdge{vertexIter,start2End,heEnd(),start2End->next,faceInner});
-	HalfEdgeIter end2New = mHalfEdge.insert(heEnd(), 
-		HalfEdge{end,halfEdgeOuter,heEnd(),end2Start,faceOuter});
+	if (alpha <= 0.0f || 1.0f <= alpha)
+	{
+		return vEnd();
+	}
 
-	new2End->twin = end2New;
-	end2New->twin = new2End;
+	HalfEdgeIter outerHalfEdge = innerHalfEdge->twin;
+	HalfEdgeIter innerNext = innerHalfEdge->next;
+	HalfEdgeIter outerPrev = outerHalfEdge->prev;
+	VertexIter startVertex = innerHalfEdge->origin;
+	VertexIter endVertex = outerHalfEdge->origin;
+	FaceIter innerFace = innerHalfEdge->incident;
+	FaceIter outerFace = outerHalfEdge->incident;
 
-	halfEdgeInner->prev = new2End;
-	end2Start->origin = vertexIter;
-	end2Start->prev = end2New;
+	VertexIter newVertex = addVertex((1.0 - alpha)*(startVertex->coords) + alpha * (endVertex->coords));
+	HalfEdgeIter newInner = mHalfEdge.insert(heEnd(), HalfEdge{ newVertex,innerHalfEdge,innerNext,heEnd(), innerFace });
+	HalfEdgeIter newOuter = mHalfEdge.insert(heEnd(), HalfEdge{ endVertex,outerPrev,outerHalfEdge,heEnd(), outerFace });
+	newInner->twin = newOuter;
+	newOuter->twin = newInner;
 
-	return vertexIter;
+	outerPrev->next = newOuter;
+	innerNext->prev = newInner;
+	innerHalfEdge->next = newInner;
+	outerHalfEdge->prev = newOuter;
+
+	return newVertex;
+	
 }
 
 //Todo: test this method
