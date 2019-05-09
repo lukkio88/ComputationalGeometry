@@ -197,11 +197,6 @@ FaceIter DCEL::join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd)
 		return fEnd();
 	}
 
-	if (halfEdgeStart == halfEdgeEnd->prev)
-	{
-		return halfEdgeStart->incident;
-	}
-
 	HalfEdgeIter startPrev = halfEdgeStart->prev;
 	HalfEdgeIter endPrev = halfEdgeEnd->prev;
 	VertexIter startVertex = halfEdgeStart->origin;
@@ -214,6 +209,7 @@ FaceIter DCEL::join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd)
 	}
 
 	FaceIter faceNew = mFace.insert(fEnd(), Face{ halfEdgeEnd });
+	face->outer = halfEdgeStart;
 
 	HalfEdgeIter start2End = mHalfEdge.insert(heEnd(),
 		HalfEdge{ startVertex,startPrev,halfEdgeEnd,heEnd(),faceNew }
@@ -231,7 +227,6 @@ FaceIter DCEL::join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd)
 	startPrev->next = start2End;
 	endPrev->next = end2Start;
 
-	//Adjusting related half edges to point to the new face
 	HalfEdgeIter current = start2End;
 	do
 	{
