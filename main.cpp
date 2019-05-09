@@ -115,15 +115,13 @@ int main(int argc, char** argv) {
 	auto f3 = subdivision.addPoly(std::vector<VertexIter>({ vh[0],vh[1],vh[2],vh[7] }));
 	print_outer_boundary(f3);
 
-	auto he = subdivision.getHalfEdge(vh[0], vh[1]);
-
-	auto vertexIter = subdivision.splitEdge(0.5f,he);
-
-	std::cout << vertexIter->coords << std::endl;
+	auto he1 = subdivision.getHalfEdge(vh[1], vh[2]);
+	auto he2 = subdivision.getHalfEdge(vh[7], vh[0]);
+	subdivision.join(he1, he2);
 
 	dumpPly(subdivision, "test.ply");
 
 	//Iterating through all the faces and printing all the indices
-
 	return 0;
+
 }

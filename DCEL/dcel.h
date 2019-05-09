@@ -147,4 +147,5 @@ private:
 	container<Vertex> mVertex;
 	container<HalfEdge> mHalfEdge;
 	container<Face> mFace;
+
 };
