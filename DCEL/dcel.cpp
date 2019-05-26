@@ -323,3 +323,63 @@ HalfEdgeIter DCEL::getHalfEdge(VertexIter vertex, FaceIter face)
 	return heEnd();
 
 }
+
+static std::vector<Segment> convertEdgesToSegmentList(DCEL & subdivision)
+{
+
+	std::vector<Segment> segmentList;
+
+	auto currHalfEdge = subdivision.heBegin();
+	while (currHalfEdge != subdivision.heEnd())
+	{
+		segmentList.push_back({ { currHalfEdge->origin->coords },{ currHalfEdge->twin->origin->coords } });
+		++currHalfEdge; //skipping the twin
+		++currHalfEdge;
+	}
+
+	return segmentList;
+}
+
+static void mergeSubdivisions(DCEL & outputSubdivision, DCEL & subdivision1, DCEL & subdivision2)
+{
+
+	//Adding vertices first
+	int numVerticesSubdivision[2] = {
+		subdivision1.numVertices(), subdivision2.numVertices()
+	};
+
+	DCEL * subdivision[2] = {
+		&subdivision1, &subdivision2
+	};
+
+	std::vector<VertexIter> index; //actually vertex handle...
+	index.reserve(numVerticesSubdivision[0] + numVerticesSubdivision[1]);
+
+	for (int i = 0; i < 2; ++i)
+	{
+		for (auto vertexIter = subdivision[i]->vBegin(); vertexIter != subdivision[i]->vEnd(); ++vertexIter)
+		{
+			index.push_back(outputSubdivision.addVertex(vertexIter->coords));
+		}
+		for (auto face = subdivision[i]->fBegin(); face != subdivision[i]->fEnd(); ++face)
+		{
+			std::vector<VertexIter> faceVertexIndex;
+			auto currHe = face->outer;
+			do
+			{
+				faceVertexIndex.push_back(index[currHe->origin->idx + i * numVerticesSubdivision[0]]);
+				currHe = currHe->next;
+			} while (currHe != face->outer);
+			outputSubdivision.addPoly(faceVertexIndex);
+		}
+	}
+}
+
+void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
+{
+	mergeSubdivisions(*this, subdivision1, subdivision2);
+	std::vector<Segment> segments = convertEdgesToSegmentList(*this);
+	//std::vector<Point> eventPointCoords = computeIntersection(segments);
+
+
+}
