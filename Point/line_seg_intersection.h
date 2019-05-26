@@ -236,20 +236,15 @@ vector<Point> computeIntersection(vector<SegmentType> & S) {
 		if (size(U, C, L) > 1)
 			intersections.push_back(p);
 
-		while (!L.empty())
-			L.pop_back();
-
 		tau.above = false;
 		int size_UC = size(U, C);
 
-		while (!U.empty()) {
-			tau.sweepLine.insert(U.back());
-			U.pop_back();
-		}
-		while (!C.empty()) {
-			tau.sweepLine.insert(C.back());
-			C.pop_back();
-		}
+		tau.sweepLine.insert(U.begin(), U.end());
+		tau.sweepLine.insert(C.begin(), C.end());
+
+		L.clear();
+		U.clear();
+		C.clear();
 
 		if (size_UC == 0) {
 			if (tau.findLeftNeighboor(p.x, sl) && tau.findRightNeighboor(p.x, sr)) {

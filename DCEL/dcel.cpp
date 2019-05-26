@@ -325,7 +325,7 @@ HalfEdgeIter DCEL::getHalfEdge(VertexIter vertex, FaceIter face)
 
 }
 
-static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision)
+static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision, int code)
 {
 
 	std::vector<Edge> segmentList;
@@ -333,7 +333,7 @@ static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision)
 	auto currHalfEdge = subdivision.heBegin();
 	while (currHalfEdge != subdivision.heEnd())
 	{
-		segmentList.push_back({currHalfEdge});
+		segmentList.push_back({currHalfEdge, code});
 		++currHalfEdge; //skipping the twin
 		++currHalfEdge;
 	}
@@ -376,11 +376,114 @@ static void mergeSubdivisions(DCEL & outputSubdivision, DCEL & subdivision1, DCE
 	}
 }
 
+
+vector<EventPoint> computeIntersection(vector<Edge> & S) {
+	PriorityQueue<Edge> queue;
+	while (!S.empty()) {
+		Edge s = S.back();
+		queue[getUp(s)].push_back(s);
+		queue[getDown(s)];
+		S.pop_back();
+	}
+
+	vector<EventPoint> intersections;
+
+	//Init status structure
+	StatusStructure<Edge> tau;
+	std::vector<Edge> C, L;
+	Float curr_x;
+	Edge sl, sr;
+
+	while (!queue.empty()) {
+
+		Point p = queue.begin()->first;
+		tau.y_line = p.y;
+		tau.above = true;
+		std::vector<Edge> U = queue.begin()->second;
+		queue.erase(queue.begin());
+
+		SweepLineIter<Edge> it = tau.getIncident(p);
+
+		//populating L and C
+		int code = 0;
+		while (it != tau.nil && it->getX(tau.y_line, curr_x) && (abs(curr_x - p.x) < 0.0001)) {
+			if (getDown(*it) == p)
+				L.push_back(*it);
+			else
+				C.push_back(*it);
+			code |= it->mCode;
+			it = tau.sweepLine.erase(it);
+		}
+
+		tau.above = false;
+		int size_UC = size(U, C);
+
+		if (size(U, C, L) > 1 && code == 0x3) {
+
+			EventPoint eventPoint;
+
+			if (C.size()  > 0)
+			{
+				for (auto edge : C) { //split the edge in lower and upper part
+					U.push_back(edge.split(p));
+					L.push_back(edge);
+				}
+				eventPoint.coords = p;
+			}
+			eventPoint.incident.insert(eventPoint.incident.insert.begin(),U.begin(), U.end());
+			eventPoint.incident.insert(eventPoint.incident.insert.begin(),L.begin(), L.end());
+			intersections.push_back(eventPoint);
+
+		}
+
+		tau.sweepLine.insert(U.begin(),U.end());
+
+		C.clear();
+		L.clear();
+		U.clear();
+
+		if (size_UC == 0) {
+			if (tau.findLeftNeighboor(p.x, sl) && tau.findRightNeighboor(p.x, sr)) {
+				Point new_event_pt;
+				if (findEvent(sl, sr, new_event_pt))
+					queue[new_event_pt];
+			}
+		}
+		else {
+			tau.above = true;
+			SweepLineIter<Edge> it_l, it_r, it_ll, it_rr;
+			tau.findLeftmostAndRightmost(p, it_l, it_r);
+			it_ll = it_l;
+			it_rr = it_r;
+			--it_ll;
+			++it_rr;
+
+			if (it_ll != tau.nil) {
+				Point new_event_pt;
+				if (findEvent(*it_ll, *it_l, new_event_pt))
+					queue[new_event_pt];
+			}
+			if (it_rr != tau.nil) {
+				Point new_event_pt;
+				if (findEvent(*it_r, *it_rr, new_event_pt))
+					queue[new_event_pt];
+			}
+		}
+	}
+
+	return intersections;
+
+}
+
 void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 {
 
 	mergeSubdivisions(*this, subdivision1, subdivision2);
-	std::vector<Edge> segments = convertEdgesToSegmentList(*this);
-	std::vector<Point> eventPointCoords = computeIntersection(segments);
+	std::vector<Edge> segments = convertEdgesToSegmentList(*this, 0);
+	std::vector<EventPoint> eventPoints = computeIntersection(segments);
 
+	for (auto eventPoint : eventPoints)
+		eventPoint.process();
+
+	//Here we can process for updating faces
 }
