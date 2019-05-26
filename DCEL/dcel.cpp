@@ -1,4 +1,5 @@
 #include <dcel.h>
+#include <line_seg_intersection.h>
 
 using std::cout;
 using std::endl;
@@ -324,15 +325,15 @@ HalfEdgeIter DCEL::getHalfEdge(VertexIter vertex, FaceIter face)
 
 }
 
-static std::vector<Segment> convertEdgesToSegmentList(DCEL & subdivision)
+static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision)
 {
 
-	std::vector<Segment> segmentList;
+	std::vector<Edge> segmentList;
 
 	auto currHalfEdge = subdivision.heBegin();
 	while (currHalfEdge != subdivision.heEnd())
 	{
-		segmentList.push_back({ { currHalfEdge->origin->coords },{ currHalfEdge->twin->origin->coords } });
+		segmentList.push_back({currHalfEdge});
 		++currHalfEdge; //skipping the twin
 		++currHalfEdge;
 	}
@@ -377,9 +378,9 @@ static void mergeSubdivisions(DCEL & outputSubdivision, DCEL & subdivision1, DCE
 
 void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 {
-	mergeSubdivisions(*this, subdivision1, subdivision2);
-	std::vector<Segment> segments = convertEdgesToSegmentList(*this);
-	//std::vector<Point> eventPointCoords = computeIntersection(segments);
 
+	mergeSubdivisions(*this, subdivision1, subdivision2);
+	std::vector<Edge> segments = convertEdgesToSegmentList(*this);
+	std::vector<Point> eventPointCoords = computeIntersection(segments);
 
 }

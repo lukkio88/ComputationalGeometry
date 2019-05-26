@@ -151,3 +151,15 @@ private:
 
 };
 
+struct Edge : public Segment {
+
+	Edge() :Segment() { ; }
+
+	Edge(const Point& p, const Point& q) :Segment(p, q) { ; }
+
+	Edge(HalfEdgeIter halfEdgeIter) :
+		Segment(halfEdgeIter->origin->coords, halfEdgeIter->twin->origin->coords), mHalfEdge(halfEdgeIter) { ; }
+
+	HalfEdgeIter mHalfEdge;
+
+};

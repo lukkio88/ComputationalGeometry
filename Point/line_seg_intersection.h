@@ -96,7 +96,7 @@ inline bool SegmentComparator<SegmentType>::operator()(const SegmentType& s, con
 }
 
 template<typename SegmentType>
-using SweepLine = typename set<Segment, SegmentComparator<SegmentType>>;
+using SweepLine = typename set<SegmentType, SegmentComparator<SegmentType>>;
 
 template<typename SegmentType>
 using SweepLineIter = typename SweepLine<SegmentType>::iterator;
@@ -130,7 +130,7 @@ inline StatusStructure<SegmentType>::StatusStructure() {
 
 template<typename SegmentType>
 inline SweepLineIter<SegmentType> StatusStructure<SegmentType>::getIncident(const Point& p) {
-	return sweepLine.lower_bound(Segment{ p,p + Point{ -1.0,0.0 } });
+	return sweepLine.lower_bound(SegmentType{ p,p + Point{ -1.0,0.0 } });
 }
 
 template<typename SegmentType>
@@ -146,7 +146,7 @@ inline std::ostream& operator<<(std::ostream& os, const PriorityQueue<SegmentTyp
 
 template<typename SegmentType>
 inline bool StatusStructure<SegmentType>::findLeftNeighboor(Float x, SegmentType& sl) const { //This assumes the flag "above" is false
-	Segment tmp{ Point{ 0.0,0.0 },Point{ 1.0,0.0 } };
+	SegmentType tmp{ Point{ 0.0,0.0 },Point{ 1.0,0.0 } };
 	SweepLineIter<SegmentType> it = sweepLine.lower_bound(tmp);
 	while (it != nil && (--it) != nil) {
 		Float curr_x;
