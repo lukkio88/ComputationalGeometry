@@ -75,7 +75,7 @@ static void print_outer_boundary(FaceIter f)
 	std::cout << std::endl;
 }
 
-int main(int argc, char** argv) {
+int test_3(int argc, char** argv) {
 
 	//test_2(argc,argv);
 
@@ -124,4 +124,9 @@ int main(int argc, char** argv) {
 	//Iterating through all the faces and printing all the indices
 	return 0;
 
+}
+
+int main(int argc, char** argv)
+{
+	return test_1(argc, argv);
 }

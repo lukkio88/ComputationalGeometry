@@ -141,7 +141,7 @@ public:
 	inline FaceIter fEnd() { return mFace.end(); }
 
 	//TODO: Implement circulators
-	void planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
+	void planarOverlay(DCEL & subdivision1, DCEL & subdivision2);
 
 private:
 
