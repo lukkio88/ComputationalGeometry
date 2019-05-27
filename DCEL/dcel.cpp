@@ -341,8 +341,10 @@ static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision, int code)
 	return segmentList;
 }
 
-static void mergeSubdivisions(DCEL & outputSubdivision, DCEL & subdivision1, DCEL & subdivision2)
+void DCEL::mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2)
 {
+
+	DCEL & outputSubdivision = *this;
 
 	//Adding vertices first
 	int numVerticesSubdivision[2] = {
@@ -377,7 +379,8 @@ static void mergeSubdivisions(DCEL & outputSubdivision, DCEL & subdivision1, DCE
 }
 
 
-vector<EventPoint> computeIntersection(vector<Edge> & S) {
+vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
+
 	PriorityQueue<Edge> queue;
 	while (!S.empty()) {
 		Edge s = S.back();
@@ -418,7 +421,7 @@ vector<EventPoint> computeIntersection(vector<Edge> & S) {
 		tau.above = false;
 		int size_UC = size(U, C);
 
-		if (size(U, C, L) > 1 && code == 0x3) {
+		if (size(U, C, L) > 1) {
 
 			EventPoint eventPoint;
 
@@ -428,10 +431,12 @@ vector<EventPoint> computeIntersection(vector<Edge> & S) {
 					U.push_back(edge.split(p));
 					L.push_back(edge);
 				}
-				eventPoint.coords = p;
+				eventPoint.vertexHandle = addVertex(p);
 			}
-			eventPoint.incident.insert(eventPoint.incident.insert.begin(),U.begin(), U.end());
-			eventPoint.incident.insert(eventPoint.incident.insert.begin(),L.begin(), L.end());
+
+			for (auto edge : U) { eventPoint.incident[edge.mCode].push_back(edge); }
+			for (auto edge : L) { eventPoint.incident[edge.mCode].push_back(edge); }
+
 			intersections.push_back(eventPoint);
 
 		}
@@ -478,8 +483,13 @@ vector<EventPoint> computeIntersection(vector<Edge> & S) {
 void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 {
 
-	mergeSubdivisions(*this, subdivision1, subdivision2);
-	std::vector<Edge> segments = convertEdgesToSegmentList(*this, 0);
+	//mergeSubdivisions(subdivision1, subdivision2);
+	std::vector<Edge> segment1 = convertEdgesToSegmentList(subdivision1, 0);
+	std::vector<Edge> segment2 = convertEdgesToSegmentList(subdivision2, 1);
+	std::vector<Edge> segments;
+	segments.insert(segments.end(), segment1.begin(), segment1.end());
+	segments.insert(segments.end(), segment2.begin(), segment2.end());
+	
 	std::vector<EventPoint> eventPoints = computeIntersection(segments);
 
 	for (auto eventPoint : eventPoints)

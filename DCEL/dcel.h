@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <list>
+#include <array>
+#include <cmath>
 
 class Vertex;
 class HalfEdge;
@@ -140,8 +142,11 @@ public:
 	inline HalfEdgeIter heEnd() { return mHalfEdge.end(); }
 	inline FaceIter fEnd() { return mFace.end(); }
 
-	//TODO: Implement circulators
+	void mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2);
+	vector<EventPoint> computeIntersection(vector<Edge> & S);
 	void planarOverlay(DCEL & subdivision1, DCEL & subdivision2);
+
+	//TODO: Implement circulators
 
 private:
 
@@ -153,10 +158,107 @@ private:
 
 struct EventPoint {
 
-	void process();
+	void process() {
+		if (incident[0].size() == 0) //Only need to adjust the vertexHandle
+		{
+			for (auto edge : incident[1])
+			{
+				if (edge.p == vertexHandle->coords)
+				{
+					edge.mHalfEdge->origin = vertexHandle;
+				}
+				else
+				{
+					edge.mHalfEdge->twin->origin = vertexHandle;
+				}
+			}
+		}
+		else if (incident[1].size() == 0) //Only need to adjust the vertex handle
+		{
+			for (auto edge : incident[0])
+			{
+				if (edge.p == vertexHandle->coords)
+				{
+					edge.mHalfEdge->origin = vertexHandle;
+				}
+				else
+				{
+					edge.mHalfEdge->twin->origin = vertexHandle;
+				}
+			}
+		}
+		else //Merge and set the vertex handle
+		{
 
-	Point coords;
-	std::list<Edge> incident;
+			int incident0Size = incident[0].size;
+			int incident1Size = incident[1].size;
+			int i0 = 0, i1 = 1; //Applying merging, merge sort style
+
+			Point coords = vertexHandle->coords;
+
+			std::vector<Edge> edge(incident0Size + incident1Size);
+			int i = 0;
+			while (i0 < incident0Size && i1 < incident1Size)
+			{
+				if (compare(incident[0][i0], incident[1][i1]))
+				{
+					edge[i++] = incident[0][i0++];
+				}
+				else
+				{
+					edge[i++] = incident[1][i1++];
+				}
+			}
+
+			if (i0 == incident0Size)
+			{
+				while (i1 < incident1Size)
+				{
+					edge[i++] = incident[1][i1++];
+				}
+			}
+			else {
+				while (i0 < incident0Size)
+				{
+					edge[i++] = incident[1][i0++];
+				}
+			}
+
+			for (i = 0; i < incident0Size + incident1Size; i++)
+			{
+				if (edge[i].p == vertexHandle->coords)
+				{
+					//to be implemented
+				}
+				else
+				{
+					//to be implemented
+				}
+			}
+		}
+	}
+
+	bool compare(Edge e1, Edge e2) {
+		Point p1, p2;
+		if (e1.p == vertexHandle->coords)
+			p1 = e1.q;
+		else
+			p1 = e1.p;
+
+		if (e2.p == vertexHandle->coords)
+			p2 = e2.q;
+		else
+			p2 = e2.p;
+
+		auto angle1 = atan2((p1 - vertexHandle->coords).y, (p1 - vertexHandle->coords).x);
+		auto angle2 = atan2((p2 - vertexHandle->coords).y, (p2 - vertexHandle->coords).x);
+
+		return angle1 < angle2;
+	};
+
+
+	VertexIter vertexHandle;
+	std::array<std::vector<Edge>,2> incident;
 
 };
 
