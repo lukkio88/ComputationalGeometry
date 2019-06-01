@@ -5,6 +5,7 @@
 #include <list>
 #include <array>
 #include <cmath>
+#include <line_seg_intersection.h>
 
 class Vertex;
 class HalfEdge;
@@ -48,6 +49,9 @@ class Face {
 public:
 	HalfEdgeIter outer;
 };
+
+struct EventPoint;
+struct Edge;
 
 /**
  * @brief this class represents a doubly connected edge list.
@@ -143,7 +147,7 @@ public:
 	inline FaceIter fEnd() { return mFace.end(); }
 
 	void mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2);
-	vector<EventPoint> computeIntersection(vector<Edge> & S);
+	std::vector<EventPoint> computeIntersection(std::vector<Edge> & S);
 	void planarOverlay(DCEL & subdivision1, DCEL & subdivision2);
 
 	//TODO: Implement circulators
@@ -155,6 +159,55 @@ private:
 	container<Face> mFace;
 
 };
+
+
+struct Edge : public Segment {
+
+	Edge() :Segment() { ; }
+
+	Edge(const Point& p, const Point& q) :Segment(p, q) { ; }
+
+	Edge(HalfEdgeIter halfEdgeIter, int code) :
+		Segment(halfEdgeIter->origin->coords, halfEdgeIter->twin->origin->coords), mHalfEdge(halfEdgeIter), mCode(code) {
+		;
+	}
+
+	Edge split(const Point& point)
+	{
+
+		Point upPoint = getMin(p, q);
+		Point downPoint = getMax(p, q);
+
+		auto alpha = (point - p)*(q - p) / ((q - p)*(q - p));
+		VertexIter vHandle = mSubdivision->splitEdge(alpha, mHalfEdge);
+
+		Point newCoords = vHandle->coords;
+
+		Edge edge_tmp(mHalfEdge->next, mCode);
+
+		if (getMin(edge_tmp.p, edge_tmp.q) == newCoords)
+		{
+			return edge_tmp;
+		}
+		else //need to swap up and down
+		{
+			edge_tmp.mHalfEdge = mHalfEdge;
+			edge_tmp.p = mHalfEdge->origin->coords;
+			edge_tmp.q = mHalfEdge->twin->origin->coords;
+
+			mHalfEdge = mHalfEdge->next;
+			p = mHalfEdge->origin->coords;
+			q = mHalfEdge->twin->origin->coords;
+		}
+
+		return Edge(mHalfEdge->next, mCode);
+	}
+
+	DCEL * mSubdivision;
+	HalfEdgeIter mHalfEdge;
+	int mCode;
+};
+
 
 struct EventPoint {
 
@@ -190,8 +243,8 @@ struct EventPoint {
 		else //Merge and set the vertex handle
 		{
 
-			int incident0Size = incident[0].size;
-			int incident1Size = incident[1].size;
+			int incident0Size = incident[0].size();
+			int incident1Size = incident[1].size();
 			int i0 = 0, i1 = 1; //Applying merging, merge sort style
 
 			Point coords = vertexHandle->coords;
@@ -260,49 +313,4 @@ struct EventPoint {
 	VertexIter vertexHandle;
 	std::array<std::vector<Edge>,2> incident;
 
-};
-
-struct Edge : public Segment {
-
-	Edge() :Segment() { ; }
-
-	Edge(const Point& p, const Point& q) :Segment(p, q) { ; }
-
-	Edge(HalfEdgeIter halfEdgeIter, int code) :
-		Segment(halfEdgeIter->origin->coords, halfEdgeIter->twin->origin->coords), mHalfEdge(halfEdgeIter), mCode(code) { ; }
-
-	Edge split(const Point& point)
-	{
-
-		Point upPoint = getMin(p, q);
-		Point downPoint = getMax(p, q);
-
-		auto alpha = (point - p)*(q - p) / ((q - p)*(q - p));
-		VertexIter vHandle = mSubdivision->splitEdge(alpha, mHalfEdge);
-
-		Point newCoords = vHandle->coords;
-
-		Edge edge_tmp(mHalfEdge->next, mCode);
-
-		if (getMin(edge_tmp.p, edge_tmp.q) == newCoords)
-		{
-			return edge_tmp;
-		}
-		else //need to swap up and down
-		{
-			edge_tmp.mHalfEdge = mHalfEdge;
-			edge_tmp.p = mHalfEdge->origin->coords;
-			edge_tmp.q = mHalfEdge->twin->origin->coords;
-
-			mHalfEdge = mHalfEdge->next;
-			p = mHalfEdge->origin->coords;
-			q = mHalfEdge->twin->origin->coords;
-		}
-
-		return Edge(mHalfEdge->next, mCode);
-	}
-
-	DCEL * mSubdivision;
-	HalfEdgeIter mHalfEdge;
-	int mCode;
 };
