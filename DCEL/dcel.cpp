@@ -384,8 +384,10 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 	PriorityQueue<Edge> queue;
 	while (!S.empty()) {
 		Edge s = S.back();
-		queue[getUp(s)].push_back(s);
-		queue[getDown(s)];
+		auto upPoint = getUp(s);
+		auto downPoint = getDown(s);
+		queue[upPoint].push_back(s);
+		queue[downPoint];
 		S.pop_back();
 	}
 
@@ -396,6 +398,7 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 	std::vector<Edge> C, L;
 	Float curr_x;
 	Edge sl, sr;
+	SweepLineIter<Edge> immediate_left;
 
 	while (!queue.empty()) {
 
@@ -406,6 +409,13 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 		queue.erase(queue.begin());
 
 		SweepLineIter<Edge> it = tau.getIncident(p);
+		if (it != tau.sweepLine.begin()) {
+			immediate_left = it;
+			--immediate_left;
+		}
+		else {
+			immediate_left = tau.nil;
+		}
 
 		//populating L and C
 		int code = 0;
@@ -428,17 +438,23 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 			if (C.size()  > 0)
 			{
 				for (auto edge : C) { //split the edge in lower and upper part
+					edge.mSubdivision = this;
 					U.push_back(edge.split(p));
 					L.push_back(edge);
 				}
-				eventPoint.vertexHandle = addVertex(p);
 			}
 
+			eventPoint.vertexHandle = addVertex(p);
 			for (auto edge : U) { eventPoint.incident[edge.mCode].push_back(edge); }
 			for (auto edge : L) { eventPoint.incident[edge.mCode].push_back(edge); }
+			eventPoint.hasImmediateLeft = immediate_left != tau.nil;
+			if (eventPoint.hasImmediateLeft)
+			{
+				//eventPoint.immediateLeft = immediate_left->getDownwardHalfEdge();
+			}
 
 			intersections.push_back(eventPoint);
-
+			std::cout << "pushing : " << eventPoint.vertexHandle->coords << std::endl;
 		}
 
 		tau.sweepLine.insert(U.begin(),U.end());

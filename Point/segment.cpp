@@ -94,6 +94,6 @@ bool Segment::isHorizontal() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Segment& s) {
-	//return (os << "{ " << s.p << " ," << s.q << "}");
-	return (os << s.label);
+	return (os << "{ " << s.p << " ," << s.q << "}");
+	//return (os << s.label);
 }

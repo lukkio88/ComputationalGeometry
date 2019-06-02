@@ -1,6 +1,7 @@
 #include <line_seg_intersection.h>
 #include <dcelIO.h>
 #include <vector>
+#include <array>
 
 using std::vector;
 
@@ -23,9 +24,9 @@ int test_1(int argc, char** argv) {
 	};
 
 	vector<Segment> list_s;
-	for (auto i = 0; i < val.size()/4; ++i) {
+	for (auto i = 0; i < val.size() / 4; ++i) {
 		int offset = 4 * i;
-		list_s.push_back(Segment({ val[offset],val[offset + 1] }, { val[offset + 2],val[offset + 3]}, label[i]));
+		list_s.push_back(Segment({ val[offset],val[offset + 1] }, { val[offset + 2],val[offset + 3] }, label[i]));
 	}
 
 	vector<Point> intersection = computeIntersection(list_s);
@@ -77,8 +78,6 @@ static void print_outer_boundary(FaceIter f)
 
 int test_3(int argc, char** argv) {
 
-	//test_2(argc,argv);
-
 	std::vector<Point> point{
 		{ 1.0,0.0 },
 		{ 0.0,0.0 },
@@ -126,7 +125,47 @@ int test_3(int argc, char** argv) {
 
 }
 
+int test_4(int argc, char** argv) {
+
+	std::array<std::vector<Point>, 2> point;
+
+	point[0] = std::vector<Point>{
+		{ -1.0,0.0 },
+		{ 0.0,-1.0 },
+		{ 0.0,1.0 }
+	};
+
+	point[1] = std::vector<Point>{
+		{ -0.5,0.0 },
+		{ 0.5,-1.0 },
+		{ 0.5,1.0 }
+	};
+
+	std::array<std::vector<VertexIter>,2> vh;
+	std::array<std::vector<FaceIter>, 2> fh;
+
+	std::array<DCEL, 2> subdivision;
+
+
+	for (auto i = 0; i < 2; ++i)
+	{
+		for (auto & pt : point[i])
+			vh[i].push_back(subdivision[i].addVertex(pt));
+		fh[i].push_back(subdivision[i].addPoly(vh[i]));
+	}
+
+	dumpPly(subdivision[0], "test0.ply");
+	dumpPly(subdivision[1], "test1.ply");
+
+	DCEL overlay;
+	overlay.planarOverlay(subdivision[0], subdivision[1]);
+
+	//Iterating through all the faces and printing all the indices
+	return 0;
+
+}
+
 int main(int argc, char** argv)
 {
-	return test_1(argc, argv);
+	return test_4(argc, argv);
 }

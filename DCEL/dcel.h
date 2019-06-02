@@ -183,24 +183,33 @@ struct Edge : public Segment {
 
 		Point newCoords = vHandle->coords;
 
-		Edge edge_tmp(mHalfEdge->next, mCode);
+		Edge edge_new(mHalfEdge->next, mCode);
 
-		if (getMin(edge_tmp.p, edge_tmp.q) == newCoords)
+		if(getDown(edge_new) == newCoords) //need to swap the two segments
 		{
-			return edge_tmp;
+
+			Edge edge_tmp(mHalfEdge, mCode);
+			mHalfEdge = edge_new.mHalfEdge;
+			p = edge_new.p;
+			q = edge_new.q;
+			
+			edge_new.mHalfEdge = edge_tmp.mHalfEdge;
+			edge_new.p = edge_tmp.p;
+			edge_new.q = edge_tmp.q;			
 		}
-		else //need to swap up and down
+		return edge_new;
+	}
+
+	HalfEdgeIter getDownwardHalfEdge()
+	{
+		if (getUp(*this) == mHalfEdge->origin->coords)
 		{
-			edge_tmp.mHalfEdge = mHalfEdge;
-			edge_tmp.p = mHalfEdge->origin->coords;
-			edge_tmp.q = mHalfEdge->twin->origin->coords;
-
-			mHalfEdge = mHalfEdge->next;
-			p = mHalfEdge->origin->coords;
-			q = mHalfEdge->twin->origin->coords;
+			return mHalfEdge;
 		}
-
-		return Edge(mHalfEdge->next, mCode);
+		else
+		{
+			return mHalfEdge->twin;
+		}
 	}
 
 	DCEL * mSubdivision;
@@ -273,19 +282,7 @@ struct EventPoint {
 			else {
 				while (i0 < incident0Size)
 				{
-					edge[i++] = incident[1][i0++];
-				}
-			}
-
-			for (i = 0; i < incident0Size + incident1Size; i++)
-			{
-				if (edge[i].p == vertexHandle->coords)
-				{
-					//to be implemented
-				}
-				else
-				{
-					//to be implemented
+					edge[i++] = incident[0][i0++];
 				}
 			}
 		}
@@ -313,4 +310,28 @@ struct EventPoint {
 	VertexIter vertexHandle;
 	std::array<std::vector<Edge>,2> incident;
 
+	/*
+	According to deBerg et al, for each event point
+	we need to store the immediate left half edge. This is done
+	in order to find arcs in the graph representing the boundary cycles.
+	
+	Still according to deBerg for each boundary cycle we define a graph node,
+	an arc is drawn between to nodes V and W if one of the two (say V) is the boundary of
+	a hole and the other (say W) has an half edge immediately to the left of the left most
+	vertex of the first (say V).
+
+	In otherwords in the very general representation of half edge data structures where
+	each face has one outer component (by definition) and possible multiple inner components
+	we need to find this out by constructing this graph.
+
+	In my implementation at the moment no face can have inner components therefore the graph would
+	simply consist of N vertices, where N is the number of nodes, and N connected components,
+	where each component has simply one node.
+
+	Therefore we could skip this computation probably. However for sake of completeness
+	I'll implement the graph construction anyway, with the expected result as the one mentioned above.
+	*/
+
+	bool hasImmediateLeft;
+	HalfEdgeIter immediateLeft;
 };
