@@ -450,7 +450,10 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 			eventPoint.hasImmediateLeft = immediate_left != tau.nil;
 			if (eventPoint.hasImmediateLeft)
 			{
-				//eventPoint.immediateLeft = immediate_left->getDownwardHalfEdge();
+				if (getUp(*immediate_left) == immediate_left->mHalfEdge->origin->coords)
+					eventPoint.immediateLeft = immediate_left->mHalfEdge;
+				else
+					eventPoint.immediateLeft = immediate_left->mHalfEdge->twin;
 			}
 
 			intersections.push_back(eventPoint);
@@ -509,7 +512,50 @@ void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 	std::vector<EventPoint> eventPoints = computeIntersection(segments);
 
 	for (auto eventPoint : eventPoints)
-		eventPoint.process();
+		eventPoint.adjustEdges();
 
-	//Here we can process for updating faces
+	/*
+	Finding connected components using union find data structure
+	(it needs to be optimized maybe). 
+	*/
+	//Assigning indices to the half edges
+	int numberHalfEdges = mHalfEdge.size();
+	std::vector<int> he_index(numberHalfEdges);
+	std::vector<HalfEdgeIter> heHandle(numberHalfEdges);
+	int index = 0;
+	for (auto he = heBegin(); he != heEnd(); ++he)
+	{
+		he_index[index] = index;
+		he->data = &he_index[index];
+		heHandle[index++] = he;
+	}
+
+	UnionFind connectedComponents(numberHalfEdges);
+
+	//Computing connected components
+	for (auto eventPoint : eventPoints) {
+		auto he = eventPoint.vertexHandle->incident->twin;
+		auto curr_he = he;
+		do
+		{
+			connectedComponents.merge(*((int*)(he->data)), *((int*)(curr_he->data)));
+			curr_he = curr_he->next;
+		} while (curr_he != he);
+
+		if (eventPoint.hasImmediateLeft)
+			connectedComponents.merge(*((int*)eventPoint.immediateLeft->data), *((int*)(curr_he->data)));
+	}
+
+	//Create faces and assign faces
+	for (auto he = heBegin(); he != heEnd(); ++he)
+	{
+		if (he->incident == fEnd()) {
+			int indexRepresentant = connectedComponents.find(*((int*)he->data));
+			if (heHandle[indexRepresentant]->incident == fEnd())
+			{
+				heHandle[indexRepresentant]->incident = mFace.insert(mFace.end(), Face{ he });
+			}
+			he->incident = heHandle[indexRepresentant]->incident;
+		}
+	}
 }

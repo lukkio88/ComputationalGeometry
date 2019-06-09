@@ -40,6 +40,7 @@ public:
 	VertexIter origin;
 	HalfEdgeIter prev, next, twin;
 	FaceIter incident;
+	void* data;
 };
 
 /**
@@ -220,7 +221,7 @@ struct Edge : public Segment {
 
 struct EventPoint {
 
-	void process() {
+	void adjustEdges() {
 		if (incident[0].size() == 0) //Only need to adjust the vertexHandle
 		{
 			for (auto edge : incident[1])

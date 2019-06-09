@@ -2,6 +2,10 @@
 #include <dcelIO.h>
 #include <vector>
 #include <array>
+#include <algorithm>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 using std::vector;
 
@@ -167,5 +171,19 @@ int test_4(int argc, char** argv) {
 
 int main(int argc, char** argv)
 {
-	return test_4(argc, argv);
+
+	std::vector<Point> p{
+		{1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}
+	};
+
+	std::sort(p.begin(), p.end(), [](const Point& a, const Point& b) {
+		return atan2(a.y, a.x) < atan2(b.y, b.x);
+	});
+
+	for (auto & pt : p)
+		std::cout << pt << std::endl;
+
+	return 0;
+
+	//return test_4(argc, argv);
 }
