@@ -172,7 +172,7 @@ int test_4(int argc, char** argv) {
 int main(int argc, char** argv)
 {
 
-	std::vector<Point> p{
+	/*std::vector<Point> p{
 		{1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}
 	};
 
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 	for (auto & pt : p)
 		std::cout << pt << std::endl;
 
-	return 0;
+	return 0;*/
 
-	//return test_4(argc, argv);
+	return test_4(argc, argv);
 }
