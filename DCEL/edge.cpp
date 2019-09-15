@@ -1,29 +1,35 @@
 #include <dcel.h>
 
 Edge::Edge() :Segment() { ; }
+
 Edge::Edge(const Point& p, const Point& q) :Segment(p, q) { ; }
+
 Edge::Edge(HalfEdgeIter halfEdgeIter, int code) :
 	Segment(halfEdgeIter->origin->coords, halfEdgeIter->twin->origin->coords), mHalfEdge(halfEdgeIter), mCode(code) {
 	;
 }
 
-Edge Edge::split(const Point& point)
+Edge::Edge(DCEL * subdivision, HalfEdgeIter halfEdgeIter, int code) :
+	Segment(halfEdgeIter->origin->coords, halfEdgeIter->twin->origin->coords), mHalfEdge(halfEdgeIter), mCode(code) {
+	mSubdivision = subdivision;
+}
+
+Edge Edge::split(const VertexIter& vertexHandle)
 {
 
 	Point upPoint = getMin(p, q);
 	Point downPoint = getMax(p, q);
 
-	auto alpha = (point - p)*(q - p) / ((q - p)*(q - p));
-	VertexIter vHandle = mSubdivision->splitEdge(alpha, mHalfEdge);
+	mSubdivision->splitEdge(vertexHandle, mHalfEdge);
 
-	Point newCoords = vHandle->coords;
+	Point newCoords = vertexHandle->coords;
 
-	Edge edge_new(mHalfEdge->next, mCode);
+	Edge edge_new(mSubdivision, mHalfEdge->next, mCode);
 
 	if (getDown(edge_new) == newCoords) //need to swap the two segments
 	{
 
-		Edge edge_tmp(mHalfEdge, mCode);
+		Edge edge_tmp(mSubdivision, mHalfEdge, mCode);
 		mHalfEdge = edge_new.mHalfEdge;
 		p = edge_new.p;
 		q = edge_new.q;

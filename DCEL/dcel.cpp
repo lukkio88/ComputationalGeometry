@@ -160,14 +160,10 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 
 }
 
-VertexIter DCEL::splitEdge(float alpha, HalfEdgeIter innerHalfEdge)
+VertexIter DCEL::splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge)
 {
-
-	if (alpha <= 0.0f || 1.0f <= alpha)
-	{
-		return vEnd();
-	}
-
+	
+	vertexHandle->incident = innerHalfEdge;
 	HalfEdgeIter outerHalfEdge = innerHalfEdge->twin;
 	HalfEdgeIter innerNext = innerHalfEdge->next;
 	HalfEdgeIter outerPrev = outerHalfEdge->prev;
@@ -176,18 +172,27 @@ VertexIter DCEL::splitEdge(float alpha, HalfEdgeIter innerHalfEdge)
 	FaceIter innerFace = innerHalfEdge->incident;
 	FaceIter outerFace = outerHalfEdge->incident;
 
-	VertexIter newVertex = addVertex((1.0 - alpha)*(startVertex->coords) + alpha * (endVertex->coords));
-	HalfEdgeIter newInner = mHalfEdge.insert(heEnd(), HalfEdge{ newVertex,innerHalfEdge,innerNext,heEnd(), innerFace });
-	HalfEdgeIter newOuter = mHalfEdge.insert(heEnd(), HalfEdge{ endVertex,outerPrev,outerHalfEdge,heEnd(), outerFace });
+	HalfEdgeIter newInner = mHalfEdge.insert(heEnd(), HalfEdge{});
+	HalfEdgeIter newOuter = mHalfEdge.insert(heEnd(), HalfEdge{});
+
+	newInner->origin = vertexHandle;
+	newInner->prev = innerHalfEdge;
+	newInner->next = innerNext;
 	newInner->twin = newOuter;
+	newInner->incident = innerFace;
+
+	newOuter->origin = endVertex;
+	newOuter->prev = outerPrev;
+	newOuter->next = outerHalfEdge;
 	newOuter->twin = newInner;
+	newOuter->incident = outerFace;
 
 	outerPrev->next = newOuter;
 	innerNext->prev = newInner;
 	innerHalfEdge->next = newInner;
 	outerHalfEdge->prev = newOuter;
 
-	return newVertex;
+	return vertexHandle;
 	
 }
 
@@ -333,7 +338,7 @@ static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision, int code)
 	auto currHalfEdge = subdivision.heBegin();
 	while (currHalfEdge != subdivision.heEnd())
 	{
-		segmentList.push_back({currHalfEdge++, code});
+		segmentList.push_back({&subdivision, currHalfEdge++, code});
 		++currHalfEdge; //skipping the twin
 	}
 
@@ -434,18 +439,23 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 
 			EventPoint eventPoint;
 
+			eventPoint.vertexHandle = addVertex(p);
+
 			if (C.size()  > 0)
 			{
 				for (auto edge : C) { //split the edge in lower and upper part
-					edge.mSubdivision = this;
-					U.push_back(edge.split(p));
+					//edge.mSubdivision = this;
+					U.push_back(edge.split(eventPoint.vertexHandle));
 					L.push_back(edge);
 				}
 			}
 
-			eventPoint.vertexHandle = addVertex(p);
-			for (auto edge : U) { eventPoint.incident[edge.mCode].push_back(edge); }
-			for (auto edge : L) { eventPoint.incident[edge.mCode].push_back(edge); }
+			for (auto edge : L) { //These edges won't be touched anymore
+				eventPoint.incident[edge.mCode].push_back(edge); 
+			}
+			for (auto edge : U) { //These could potentially change as the sweep line moves
+				eventPoint.incident[edge.mCode].push_back(edge);
+			}
 			eventPoint.hasImmediateLeft = immediate_left != tau.nil;
 			if (eventPoint.hasImmediateLeft)
 			{
@@ -557,4 +567,6 @@ void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 	//		he->incident = heHandle[indexRepresentant]->incident;
 	//	}
 	//}
+
+	return;
 }

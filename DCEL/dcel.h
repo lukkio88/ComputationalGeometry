@@ -120,9 +120,10 @@ public:
 	FaceIter addPoly(std::vector<VertexIter> vertexIter);
 
 	/**
-	@brief Splitting the edge start-end into two
+	@brief Splitting the edge start-end into two. The second argument represents an
+	half edge incident to the vertex handle
 	*/
-	VertexIter splitEdge(float alpha, HalfEdgeIter innerHalfEdge);
+	VertexIter splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge);
 
 	/**
 	@brief joint the origin vertex of two halfedges if they're incident to the same face
@@ -166,7 +167,8 @@ struct Edge : public Segment {
 	Edge();
 	Edge(const Point& p, const Point& q);
 	Edge(HalfEdgeIter halfEdgeIter, int code);
-	Edge split(const Point& point);
+	Edge(DCEL * subdivision, HalfEdgeIter halfEdgeIter, int code);
+	Edge split(const VertexIter& point);
 	HalfEdgeIter getDownwardHalfEdge();
 
 	DCEL * mSubdivision;
