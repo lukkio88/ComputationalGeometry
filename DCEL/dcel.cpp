@@ -4,17 +4,67 @@
 using std::cout;
 using std::endl;
 
-VertexIter DCEL::addVertex(Point coords) {
+VertexIter WeakDCEL::addVertex(Point coords) {
 	int idx = mVertex.size();
 	return mVertex.insert(mVertex.end(), Vertex{ idx, coords,heEnd() });
 }
 
-HalfEdgeIter DCEL::addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) {
+HalfEdgeIter WeakDCEL::addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd) {
 	HalfEdgeIter inner = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{vertexStart,heEnd(),heEnd(),heEnd(),fEnd()});
 	HalfEdgeIter outer = mHalfEdge.insert(mHalfEdge.end(), HalfEdge{vertexEnd, heEnd(),heEnd(),heEnd(),fEnd()});
 	inner->twin = outer;
 	outer->twin = inner;
 	return inner;
+}
+
+VertexIter WeakDCEL::splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge)
+{
+	vertexHandle->incident = innerHalfEdge;
+	HalfEdgeIter outerHalfEdge = innerHalfEdge->twin;
+	HalfEdgeIter innerNext = innerHalfEdge->next;
+	HalfEdgeIter outerPrev = outerHalfEdge->prev;
+	VertexIter startVertex = innerHalfEdge->origin;
+	VertexIter endVertex = outerHalfEdge->origin;
+	//FaceIter innerFace = innerHalfEdge->incident;
+	//FaceIter outerFace = outerHalfEdge->incident;
+
+	HalfEdgeIter newInner = mHalfEdge.insert(heEnd(), HalfEdge{});
+	HalfEdgeIter newOuter = mHalfEdge.insert(heEnd(), HalfEdge{});
+
+	newInner->origin = vertexHandle;
+	newInner->prev = innerHalfEdge;
+	newInner->next = innerNext;
+	newInner->twin = newOuter;
+	//newInner->incident = innerFace;
+
+	newOuter->origin = endVertex;
+	newOuter->prev = outerPrev;
+	newOuter->next = outerHalfEdge;
+	newOuter->twin = newInner;
+	//newOuter->incident = outerFace;
+
+	outerPrev->next = newOuter;
+	innerNext->prev = newInner;
+	innerHalfEdge->next = newInner;
+	outerHalfEdge->prev = newOuter;
+
+	return vertexHandle;
+
+}
+
+VertexIter DCEL::splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge)
+{
+
+	WeakDCEL::splitEdge(vertexHandle, innerHalfEdge);
+	HalfEdgeIter outerHalfEdge = innerHalfEdge->twin;
+	HalfEdgeIter newInner = innerHalfEdge->next;
+	HalfEdgeIter newOuter = innerHalfEdge->twin->prev;
+
+	newInner->incident = innerHalfEdge->incident;
+	newOuter->incident = outerHalfEdge->incident;
+
+	return vertexHandle;
+
 }
 
 FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
@@ -158,42 +208,6 @@ FaceIter DCEL::addPoly(std::vector<VertexIter> vertex) {
 
 	return faceIter;
 
-}
-
-VertexIter DCEL::splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge)
-{
-	
-	vertexHandle->incident = innerHalfEdge;
-	HalfEdgeIter outerHalfEdge = innerHalfEdge->twin;
-	HalfEdgeIter innerNext = innerHalfEdge->next;
-	HalfEdgeIter outerPrev = outerHalfEdge->prev;
-	VertexIter startVertex = innerHalfEdge->origin;
-	VertexIter endVertex = outerHalfEdge->origin;
-	FaceIter innerFace = innerHalfEdge->incident;
-	FaceIter outerFace = outerHalfEdge->incident;
-
-	HalfEdgeIter newInner = mHalfEdge.insert(heEnd(), HalfEdge{});
-	HalfEdgeIter newOuter = mHalfEdge.insert(heEnd(), HalfEdge{});
-
-	newInner->origin = vertexHandle;
-	newInner->prev = innerHalfEdge;
-	newInner->next = innerNext;
-	newInner->twin = newOuter;
-	newInner->incident = innerFace;
-
-	newOuter->origin = endVertex;
-	newOuter->prev = outerPrev;
-	newOuter->next = outerHalfEdge;
-	newOuter->twin = newInner;
-	newOuter->incident = outerFace;
-
-	outerPrev->next = newOuter;
-	innerNext->prev = newInner;
-	innerHalfEdge->next = newInner;
-	outerHalfEdge->prev = newOuter;
-
-	return vertexHandle;
-	
 }
 
 FaceIter DCEL::join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd)
@@ -345,7 +359,7 @@ static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision, int code)
 	return segmentList;
 }
 
-void DCEL::mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2)
+std::vector<Edge> DCEL::mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2)
 {
 
 	DCEL & outputSubdivision = *this;
@@ -359,6 +373,7 @@ void DCEL::mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2)
 		&subdivision1, &subdivision2
 	};
 
+	std::vector<Edge> segment;
 	std::vector<VertexIter> index; //actually vertex handle...
 	index.reserve(numVerticesSubdivision[0] + numVerticesSubdivision[1]);
 
@@ -368,18 +383,19 @@ void DCEL::mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2)
 		{
 			index.push_back(outputSubdivision.addVertex(vertexIter->coords));
 		}
-		for (auto face = subdivision[i]->fBegin(); face != subdivision[i]->fEnd(); ++face)
+		for (auto halfEdgeIter = subdivision[i]->heBegin(); halfEdgeIter != subdivision[i]->heEnd(); ++halfEdgeIter, ++halfEdgeIter)
 		{
-			std::vector<VertexIter> faceVertexIndex;
-			auto currHe = face->outer;
-			do
-			{
-				faceVertexIndex.push_back(index[currHe->origin->idx + i * numVerticesSubdivision[0]]);
-				currHe = currHe->next;
-			} while (currHe != face->outer);
-			outputSubdivision.addPoly(faceVertexIndex);
+			outputSubdivision.WeakDCEL::addHalfEdge(
+				index[halfEdgeIter->origin->idx + i*numVerticesSubdivision[0]], 
+				index[halfEdgeIter->twin->origin->idx + i*numVerticesSubdivision[0]]);
+			segment.push_back(Edge{ &outputSubdivision, halfEdgeIter, i });
 		}
 	}
+
+	//Silly trick... lemme clean the vertex handle list
+	mVertex.clear();
+
+	return segment;
 }
 
 
@@ -511,17 +527,12 @@ vector<EventPoint> DCEL::computeIntersection(vector<Edge> & S) {
 void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 {
 
-	//mergeSubdivisions(subdivision1, subdivision2);
-	std::vector<Edge> segment1 = convertEdgesToSegmentList(subdivision1, 0);
-	std::vector<Edge> segment2 = convertEdgesToSegmentList(subdivision2, 1);
-	std::vector<Edge> segments;
-	segments.insert(segments.end(), segment1.begin(), segment1.end());
-	segments.insert(segments.end(), segment2.begin(), segment2.end());
-	
+	std::vector<Edge> segments = mergeSubdivisions(subdivision1, subdivision2);	
 	std::vector<EventPoint> eventPoints = computeIntersection(segments);
-
 	for (auto eventPoint : eventPoints)
 		eventPoint.adjustEdges();
+
+	//For sake of testing... just create the faces in the naive way, i.e. traverse the halfedges
 
 	///*
 	//Finding connected components using union find data structure

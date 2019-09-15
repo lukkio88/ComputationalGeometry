@@ -54,10 +54,60 @@ public:
 struct EventPoint;
 struct Edge;
 
+//This class doesn't take into account faces, it's a "weaker" dcel, useful if we have to build one incrementally
+class WeakDCEL 
+{
+public:
+	/**
+	@brief add a single isolated vertex
+	*/
+	VertexIter addVertex(Point coords);
+
+	/**
+	@brief Creating an half-edge (and its twin) going from vertex v to w
+	*/
+	HalfEdgeIter addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd);
+
+	/**
+	@brief Splitting the edge start-end into two. The second argument represents an
+	half edge incident to the vertex handle
+	*/
+	VertexIter splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge);
+
+	/**
+	@brief Return num vertices
+	*/
+	inline int numVertices() const { return mVertex.size(); }
+
+	/**
+	@brief Return num edges
+	*/
+	inline int numEdges() const { return mHalfEdge.size() / 2; }
+
+	/**
+	@brief Return num faces
+	*/
+	inline int numFaces() const { return mFace.size(); }
+
+
+	inline VertexIter vBegin() { return mVertex.begin(); }
+	inline HalfEdgeIter heBegin() { return mHalfEdge.begin(); }
+	inline FaceIter fBegin() { return mFace.begin(); }
+
+	inline VertexIter vEnd() { return mVertex.end(); }
+	inline HalfEdgeIter heEnd() { return mHalfEdge.end(); }
+	inline FaceIter fEnd() { return mFace.end(); }
+
+public:
+	container<Vertex> mVertex;
+	container<HalfEdge> mHalfEdge;
+	container<Face> mFace;
+};
+
 /**
  * @brief this class represents a doubly connected edge list.
  */
-class DCEL {
+class DCEL : public WeakDCEL {
 public:
 	/**
 	@brief return true if the incident half edge is nil, false otherwise
@@ -86,33 +136,9 @@ public:
 	bool isValid(HalfEdgeIter halfEdgeIter);
 
 	/**
-	@brief Return num vertices
-	*/
-	inline int numVertices() const { return mVertex.size(); }
-
-	/**
-	@brief Return num edges
-	*/
-	inline int numEdges() const { return mHalfEdge.size() / 2; }
-
-	/**
-	@brief Return num faces
-	*/
-	inline int numFaces() const { return mFace.size(); }
-
-	/**
 	@brief Adjusting vertex, so that the incident half edge is the twin of a boundary one
 	*/
 	HalfEdgeIter adjustVertex(VertexIter vertexIter);
-
-	/**
-	@brief add a single isolated vertex
-	*/
-	VertexIter addVertex(Point coords);
-	/**
-	@brief Creating an half-edge (and its twin) going from vertex v to w
-	*/
-	HalfEdgeIter addHalfEdge(VertexIter vertexStart, VertexIter vertexEnd);
 
 	/**
 	@brief Creates a new polygon and return the incident faceIter
@@ -120,15 +146,14 @@ public:
 	FaceIter addPoly(std::vector<VertexIter> vertexIter);
 
 	/**
-	@brief Splitting the edge start-end into two. The second argument represents an
-	half edge incident to the vertex handle
-	*/
-	VertexIter splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge);
-
-	/**
 	@brief joint the origin vertex of two halfedges if they're incident to the same face
 	*/
 	FaceIter join(HalfEdgeIter halfEdgeStart, HalfEdgeIter halfEdgeEnd);
+
+	/*
+	Same as the base class, but it updates the face data as well
+	*/
+	VertexIter splitEdge(VertexIter vertexHandle, HalfEdgeIter innerHalfEdge);
 
 	/*
 	@brief Returns the half edge going from start to end, if exists, nil otherwise
@@ -140,25 +165,11 @@ public:
 	*/
 	HalfEdgeIter DCEL::getHalfEdge(VertexIter vertex, FaceIter face);
 
-	inline VertexIter vBegin() { return mVertex.begin(); }
-	inline HalfEdgeIter heBegin() { return mHalfEdge.begin(); }
-	inline FaceIter fBegin() { return mFace.begin(); }
-
-	inline VertexIter vEnd() { return mVertex.end(); }
-	inline HalfEdgeIter heEnd() { return mHalfEdge.end(); }
-	inline FaceIter fEnd() { return mFace.end(); }
-
-	void mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2);
+	std::vector<Edge> mergeSubdivisions(DCEL & subdivision1, DCEL & subdivision2);
 	std::vector<EventPoint> computeIntersection(std::vector<Edge> & S);
 	void planarOverlay(DCEL & subdivision1, DCEL & subdivision2);
 
 	//TODO: Implement circulators
-
-private:
-
-	container<Vertex> mVertex;
-	container<HalfEdge> mHalfEdge;
-	container<Face> mFace;
 
 };
 
