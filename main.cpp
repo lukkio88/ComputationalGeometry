@@ -129,7 +129,7 @@ int test_3(int argc, char** argv) {
 
 }
 
-int test_4(int argc, char** argv) {
+int testMapOverlay(int argc, char** argv) {
 
 	std::array<std::vector<Point>, 2> point;
 
@@ -171,19 +171,5 @@ int test_4(int argc, char** argv) {
 
 int main(int argc, char** argv)
 {
-
-	/*std::vector<Point> p{
-		{1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}
-	};
-
-	std::sort(p.begin(), p.end(), [](const Point& a, const Point& b) {
-		return atan2(a.y, a.x) < atan2(b.y, b.x);
-	});
-
-	for (auto & pt : p)
-		std::cout << pt << std::endl;
-
-	return 0;*/
-
-	return test_4(argc, argv);
+	return testMapOverlay(argc, argv);
 }

@@ -161,161 +161,32 @@ private:
 
 };
 
-
 struct Edge : public Segment {
 
-	Edge() :Segment() { ; }
-
-	Edge(const Point& p, const Point& q) :Segment(p, q) { ; }
-
-	Edge(HalfEdgeIter halfEdgeIter, int code) :
-		Segment(halfEdgeIter->origin->coords, halfEdgeIter->twin->origin->coords), mHalfEdge(halfEdgeIter), mCode(code) {
-		;
-	}
-
-	Edge split(const Point& point)
-	{
-
-		Point upPoint = getMin(p, q);
-		Point downPoint = getMax(p, q);
-
-		auto alpha = (point - p)*(q - p) / ((q - p)*(q - p));
-		VertexIter vHandle = mSubdivision->splitEdge(alpha, mHalfEdge);
-
-		Point newCoords = vHandle->coords;
-
-		Edge edge_new(mHalfEdge->next, mCode);
-
-		if(getDown(edge_new) == newCoords) //need to swap the two segments
-		{
-
-			Edge edge_tmp(mHalfEdge, mCode);
-			mHalfEdge = edge_new.mHalfEdge;
-			p = edge_new.p;
-			q = edge_new.q;
-			
-			edge_new.mHalfEdge = edge_tmp.mHalfEdge;
-			edge_new.p = edge_tmp.p;
-			edge_new.q = edge_tmp.q;			
-		}
-		return edge_new;
-	}
-
-	HalfEdgeIter getDownwardHalfEdge()
-	{
-		if (getUp(*this) == mHalfEdge->origin->coords)
-		{
-			return mHalfEdge;
-		}
-		else
-		{
-			return mHalfEdge->twin;
-		}
-	}
+	Edge();
+	Edge(const Point& p, const Point& q);
+	Edge(HalfEdgeIter halfEdgeIter, int code);
+	Edge split(const Point& point);
+	HalfEdgeIter getDownwardHalfEdge();
 
 	DCEL * mSubdivision;
 	HalfEdgeIter mHalfEdge;
 	int mCode;
 };
 
-
 struct EventPoint {
 
-	void adjustEdges() {
-		if (incident[0].size() == 0) //Only need to adjust the vertexHandle
-		{
-			for (auto edge : incident[1])
-			{
-				if (edge.p == vertexHandle->coords)
-				{
-					edge.mHalfEdge->origin = vertexHandle;
-				}
-				else
-				{
-					edge.mHalfEdge->twin->origin = vertexHandle;
-				}
-			}
-		}
-		else if (incident[1].size() == 0) //Only need to adjust the vertex handle
-		{
-			for (auto edge : incident[0])
-			{
-				if (edge.p == vertexHandle->coords)
-				{
-					edge.mHalfEdge->origin = vertexHandle;
-				}
-				else
-				{
-					edge.mHalfEdge->twin->origin = vertexHandle;
-				}
-			}
-		}
-		else //Merge and set the vertex handle
-		{
-
-			int incident0Size = incident[0].size();
-			int incident1Size = incident[1].size();
-			int i0 = 0, i1 = 1; //Applying merging, merge sort style
-
-			Point coords = vertexHandle->coords;
-
-			std::vector<Edge> edge(incident0Size + incident1Size);
-			int i = 0;
-			while (i0 < incident0Size && i1 < incident1Size)
-			{
-				if (compare(incident[0][i0], incident[1][i1]))
-				{
-					edge[i++] = incident[0][i0++];
-				}
-				else
-				{
-					edge[i++] = incident[1][i1++];
-				}
-			}
-
-			if (i0 == incident0Size)
-			{
-				while (i1 < incident1Size)
-				{
-					edge[i++] = incident[1][i1++];
-				}
-			}
-			else {
-				while (i0 < incident0Size)
-				{
-					edge[i++] = incident[0][i0++];
-				}
-			}
-		}
-	}
-
-	bool compare(Edge e1, Edge e2) {
-		Point p1, p2;
-		if (e1.p == vertexHandle->coords)
-			p1 = e1.q;
-		else
-			p1 = e1.p;
-
-		if (e2.p == vertexHandle->coords)
-			p2 = e2.q;
-		else
-			p2 = e2.p;
-
-		auto angle1 = atan2((p1 - vertexHandle->coords).y, (p1 - vertexHandle->coords).x);
-		auto angle2 = atan2((p2 - vertexHandle->coords).y, (p2 - vertexHandle->coords).x);
-
-		return angle1 < angle2;
-	};
-
+	void adjustEdges();
+	bool compare(Edge e1, Edge e2);
 
 	VertexIter vertexHandle;
-	std::array<std::vector<Edge>,2> incident;
+	std::array<std::vector<Edge>, 2> incident;
 
 	/*
 	According to deBerg et al, for each event point
 	we need to store the immediate left half edge. This is done
 	in order to find arcs in the graph representing the boundary cycles.
-	
+
 	Still according to deBerg for each boundary cycle we define a graph node,
 	an arc is drawn between to nodes V and W if one of the two (say V) is the boundary of
 	a hole and the other (say W) has an half edge immediately to the left of the left most

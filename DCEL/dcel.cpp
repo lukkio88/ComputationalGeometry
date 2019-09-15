@@ -333,9 +333,8 @@ static std::vector<Edge> convertEdgesToSegmentList(DCEL & subdivision, int code)
 	auto currHalfEdge = subdivision.heBegin();
 	while (currHalfEdge != subdivision.heEnd())
 	{
-		segmentList.push_back({currHalfEdge, code});
+		segmentList.push_back({currHalfEdge++, code});
 		++currHalfEdge; //skipping the twin
-		++currHalfEdge;
 	}
 
 	return segmentList;
@@ -514,48 +513,48 @@ void DCEL::planarOverlay(DCEL & subdivision1, DCEL & subdivision2)
 	for (auto eventPoint : eventPoints)
 		eventPoint.adjustEdges();
 
-	/*
-	Finding connected components using union find data structure
-	(it needs to be optimized maybe). 
-	*/
-	//Assigning indices to the half edges
-	int numberHalfEdges = mHalfEdge.size();
-	std::vector<int> he_index(numberHalfEdges);
-	std::vector<HalfEdgeIter> heHandle(numberHalfEdges);
-	int index = 0;
-	for (auto he = heBegin(); he != heEnd(); ++he)
-	{
-		he_index[index] = index;
-		he->data = &he_index[index];
-		heHandle[index++] = he;
-	}
+	///*
+	//Finding connected components using union find data structure
+	//(it needs to be optimized maybe). 
+	//*/
+	////Assigning indices to the half edges
+	//int numberHalfEdges = mHalfEdge.size();
+	//std::vector<int> he_index(numberHalfEdges);
+	//std::vector<HalfEdgeIter> heHandle(numberHalfEdges);
+	//int index = 0;
+	//for (auto he = heBegin(); he != heEnd(); ++he)
+	//{
+	//	he_index[index] = index;
+	//	he->data = &he_index[index];
+	//	heHandle[index++] = he;
+	//}
 
-	UnionFind connectedComponents(numberHalfEdges);
+	//UnionFind connectedComponents(numberHalfEdges);
 
-	//Computing connected components
-	for (auto eventPoint : eventPoints) {
-		auto he = eventPoint.vertexHandle->incident->twin;
-		auto curr_he = he;
-		do
-		{
-			connectedComponents.merge(*((int*)(he->data)), *((int*)(curr_he->data)));
-			curr_he = curr_he->next;
-		} while (curr_he != he);
+	////Computing connected components
+	//for (auto eventPoint : eventPoints) {
+	//	auto he = eventPoint.vertexHandle->incident->twin;
+	//	auto curr_he = he;
+	//	do
+	//	{
+	//		connectedComponents.merge(*((int*)(he->data)), *((int*)(curr_he->data)));
+	//		curr_he = curr_he->next;
+	//	} while (curr_he != he);
 
-		if (eventPoint.hasImmediateLeft)
-			connectedComponents.merge(*((int*)eventPoint.immediateLeft->data), *((int*)(curr_he->data)));
-	}
+	//	if (eventPoint.hasImmediateLeft)
+	//		connectedComponents.merge(*((int*)eventPoint.immediateLeft->data), *((int*)(curr_he->data)));
+	//}
 
-	//Create faces and assign faces
-	for (auto he = heBegin(); he != heEnd(); ++he)
-	{
-		if (he->incident == fEnd()) {
-			int indexRepresentant = connectedComponents.find(*((int*)he->data));
-			if (heHandle[indexRepresentant]->incident == fEnd())
-			{
-				heHandle[indexRepresentant]->incident = mFace.insert(mFace.end(), Face{ he });
-			}
-			he->incident = heHandle[indexRepresentant]->incident;
-		}
-	}
+	////Create faces and assign faces
+	//for (auto he = heBegin(); he != heEnd(); ++he)
+	//{
+	//	if (he->incident == fEnd()) {
+	//		int indexRepresentant = connectedComponents.find(*((int*)he->data));
+	//		if (heHandle[indexRepresentant]->incident == fEnd())
+	//		{
+	//			heHandle[indexRepresentant]->incident = mFace.insert(mFace.end(), Face{ he });
+	//		}
+	//		he->incident = heHandle[indexRepresentant]->incident;
+	//	}
+	//}
 }
