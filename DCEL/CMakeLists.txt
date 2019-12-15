@@ -4,8 +4,8 @@ project(2DGeometry)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(./ ../Point)
-set(HEADER_FILES dcel.h dcelIO.h)
-set(SRC_FILES dcel.cpp dcelIO.cpp event_point.cpp edge.cpp)
+set(HEADER_FILES weak_dcel.h dcel.h dcelIO.h)
+set(SRC_FILES weak_dcel.cpp dcel.cpp dcelIO.cpp event_point.cpp edge.cpp)
 
 add_library(dcel STATIC ${SRC_FILES} ${HEADER_FILES})
 target_link_libraries(dcel 2d-geometry)
