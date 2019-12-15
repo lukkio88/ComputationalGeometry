@@ -4,8 +4,8 @@ project(2DGeometry)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(./)
-set(HEADER_FILES util.h point2D.h line.h segment.h line_seg_intersection.h)
-set(SRC_FILES util.cpp point2D.cpp line.cpp segment.cpp line_seg_intersection.cpp)
+set(HEADER_FILES util.h point.h line.h segment.h line_seg_intersection.h)
+set(SRC_FILES util.cpp point.cpp line.cpp segment.cpp line_seg_intersection.cpp)
 
 #if(WIN32)
 #	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols")

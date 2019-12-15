@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __SEGMENT_H
 #define __SEGMENT_H
-#include <point2D.h>
+#include <point.h>
 #include <string>
 
 using std::ostream;

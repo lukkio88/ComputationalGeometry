@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(./Point)
 add_subdirectory(./DCEL)
+add_subdirectory(./GeometryPrimitiveTest)
 set(INCLUDE_FOLDERS ./ ./Point ./DCEL)
 set(SRC_FILES main.cpp)
 

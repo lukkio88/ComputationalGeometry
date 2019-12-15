@@ -1,4 +1,4 @@
-#include <point2D.h>
+#include <point.h>
 
 Point Point::operator-() const
 {
