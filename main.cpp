@@ -57,7 +57,7 @@ static void print_outer_boundary(FaceIter f)
 
 int main(int argc, char** argv) {
 
-	//test_2(argc,argv);
+	test_1(argc,argv);
 
 	/*std::vector<Point> point{
 		{ 1.0,0.0 },
