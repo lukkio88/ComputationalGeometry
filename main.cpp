@@ -14,18 +14,10 @@ int test_1(int argc, char** argv) {
 		//-100.0, -50.0, 100.0, 50.0
 	};
 
-	vector<std::string> label{
-		"s1",
-		"s2",
-		"s3",
-		"s4",
-		"s5"
-	};
-
 	vector<Segment> list_s;
 	for (auto i = 0; i < val.size()/4; ++i) {
 		int offset = 4 * i;
-		list_s.push_back(Segment({ val[offset],val[offset + 1] }, { val[offset + 2],val[offset + 3]}, label[i]));
+		list_s.push_back(Segment{ { val[offset],val[offset + 1] }, { val[offset + 2],val[offset + 3]} });
 	}
 
 	vector<Point> intersection = computeIntersection(list_s);
@@ -33,18 +25,6 @@ int test_1(int argc, char** argv) {
 	for (auto p : intersection) {
 		std::cout << p << std::endl;
 	}
-
-	return 0;
-}
-
-int test_2(int argc, char** argv) {
-	std::list<int> v;
-	v.insert(v.end(), { 1,2,3,4,5 });
-	std::list<int>::iterator it1 = v.end();
-	auto it_tmp = v.insert(it1, 6);
-	std::list<int>::iterator it2 = v.end();
-
-	std::cout << (it1 == it2) << std::endl;
 
 	return 0;
 }
@@ -79,7 +59,7 @@ int main(int argc, char** argv) {
 
 	//test_2(argc,argv);
 
-	std::vector<Point> point{
+	/*std::vector<Point> point{
 		{ 1.0,0.0 },
 		{ 0.0,0.0 },
 		{-1.0,0.0},
@@ -122,6 +102,7 @@ int main(int argc, char** argv) {
 	dumpPly(subdivision, "test.ply");
 
 	//Iterating through all the faces and printing all the indices
+	*/
 	return 0;
 
 }
