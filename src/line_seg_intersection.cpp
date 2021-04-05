@@ -1,5 +1,6 @@
 #pragma once
 #include <line_seg_intersection.h>
+#include <limits>
 
 bool ComparePts::operator()(const Point& p, const Point & q) const {
 	return p.y - q.y >= THRESHOLD || ((abs(p.y - q.y) < THRESHOLD) && p.x < q.x);
@@ -89,6 +90,9 @@ StatusStructure::StatusStructure() {
 	segComp.above = &above;
 	sweepLine = SweepLine(segComp);
 	nil = sweepLine.end();
+	angleUpperBound = std::numeric_limits<float>::min();
+	angleLowerBound = std::numeric_limits<float>::max();
+
 }
 
 bool StatusStructure::findLeftNeighboor(float x, Segment& sl) const { //This assumes the flag "above" is false
@@ -172,11 +176,11 @@ vector<Point> computeIntersection(vector<Segment> & S) {
 		int size_UC = size(U, C);
 
 		while (!U.empty()) {
-			tau.sweepLine.insert(U.back());
+			tau.insertSegment(U.back());
 			U.pop_back();
 		}
 		while (!C.empty()) {
-			tau.sweepLine.insert(C.back());
+			tau.insertSegment(C.back());
 			C.pop_back();
 		}
 
